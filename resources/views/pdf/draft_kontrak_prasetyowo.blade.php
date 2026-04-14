@@ -382,16 +382,16 @@
             <div style="margin-top: 10px;">
                 <table style="width: 100%; table-layout: fixed;">
                     <tr>
-                        <td style="width: 50%; vertical-align: top; padding-right: 10px;">
+                        <td style="width: 50%; vertical-align: top; padding-right: 10px; text-align: center;">
                             <div><b>{{ $companyBankName }}</b></div>
                             <div>{{ $companyBankAccount }}</div>
-                            <div>Atas Nama: <b>{{ $companyBankHolder }}</b></div>
+                            <div><b>{{ $companyBankHolder }}</b></div>
                         </td>
-                        <td style="width: 50%; vertical-align: top; padding-left: 10px;">
+                        <td style="width: 50%; vertical-align: top; padding-left: 10px; text-align: center;">
                             @if ($companyBankName2 || $companyBankAccount2 || $companyBankHolder2)
                                 <div><b>{{ $companyBankName2 ?? '-' }}</b></div>
                                 <div>{{ $companyBankAccount2 ?? '-' }}</div>
-                                <div>Atas Nama: <b>{{ $companyBankHolder2 ?? '-' }}</b></div>
+                                <div><b>{{ $companyBankHolder2 ?? '-' }}</b></div>
                             @endif
                         </td>
                     </tr>
@@ -425,7 +425,8 @@
     <div class="section-title subpasal" style="font-weight: bold; margin-top: 0; margin-bottom: 6px;">Hak Dan Kewajiban</div>
 
     <ol>
-        <li class="text-justify">Kewajiban PIHAK PERTAMA: </li>
+        <li class="text-justify">
+            Kewajiban PIHAK PERTAMA:
             <ol type="a" style="margin-top: 6px;">
                 <li>Melakukan koordinasi pra acara dengan vendor-vendor yang telah dipilih oleh PIHAK KEDUA</li>
                 <li>Melakukan re-checking pekerjaan vendor sesuai dengan perjanjian kerjasama yang telah dijanjikan kepada PIHAK KEDUA</li>
@@ -436,18 +437,18 @@
                 <li>Dalam hal PIHAK PERTAMA tidak dapat memenuhi kewajibannya sesuai dengan perjanjian ini, PIHAK KEDUA berhak untuk meminta pengembalian dana sebesar jumlah yang dibayarkan dan dikurangi dengan biaya administrasi sebesar down payment awal.</li>
                 <li>Jika PIHAK KEDUA membatalkan perjanjian lebih dari 6 bulan sebelum acara, maka PIHAK KEDUA berhak mendapatkan pengembalian dana sebesar 80% dari jumlah yang telah dibayarkan. Jika pembatalan terjadi dalam waktu 6 bulan sebelum pelaksanaan acara, maka pengembalian dana akan ditentukan berdasarkan kesepakatan bersama.</li>
                 <li>PIHAK PERTAMA wajib menyelesaikan semua pekerjaan sesuai dengan jadwal yang telah disepakati dan memastikan bahwa kualitas layanan yang diberikan sesuai dengan spesifikasi yang tertera dalam perjanjian.</li>
-            </ol>        
-    </ol>
-
-    <ol>
-        <li class="text-justify">Hak PIHAK KEDUA: </li>
+            </ol>
+        </li>
+        <li class="text-justify">
+            Hak PIHAK KEDUA:
             <ol type="a" style="margin-top: 6px;">
                 <li>Menerima hasil laporan pekerjaan vendor-vendor dari PIHAK PERTAMA</li>
                 <li>Mengingatkan semua hal yang berkaitan dengan pelaksanaan acara kepada PIHAK PERTAMA</li>
                 <li>Melaksanakan gladi bersih untuk pra acara sesuai dengan waktu yang disepakati dengan PIHAK PERTAMA</li>
                 <li>Memberikan masukan dan berkonsultasi terkait pelaksanaan acara pernikahan.</li>
                 <li>PIHAK KEDUA berhak untuk mengganti tanggal acara dengan memberikan pemberitahuan tertulis minimal 3 bulan sebelum tanggal pelaksanaan acara.</li>
-            </ol>        
+            </ol>
+        </li>
     </ol>
 
     <div class="section-title pasal">Pasal 5</div>
