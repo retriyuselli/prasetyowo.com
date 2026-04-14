@@ -12,7 +12,7 @@
         body {
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 11px;
-            line-height: 1.3;
+            line-height: 1.2;
             color: #000;
             margin: 0;
         }
@@ -126,6 +126,65 @@
         li {
             margin-bottom: 5px;
             text-align: justify;
+            padding-left: 10px;
+        }
+
+        .product-detail-list {
+            margin-top: 6px;
+        }
+
+        .product-detail-item {
+            margin-top: 4px;
+        }
+
+        .product-detail-vendor {
+            font-weight: bold;
+        }
+
+        .product-detail-desc {
+            margin-top: 4px;
+        }
+
+        .product-detail-desc,
+        .product-detail-desc * {
+            font-size: 11px !important;
+            line-height: 1.2;
+            font-weight: normal;
+        }
+
+        .product-detail-desc p,
+        .product-detail-desc div {
+            margin: 0;
+            padding: 0;
+        }
+
+        .product-detail-desc b,
+        .product-detail-desc strong {
+            font-weight: bold;
+        }
+
+        .product-detail-desc ol,
+        .product-detail-desc ul {
+            margin: 6px 0 0 0;
+            padding-left: 40px;
+        }
+
+        .product-detail-desc ol {
+            list-style-type: lower-alpha;
+            list-style-position: outside;
+        }
+
+        .product-detail-desc ol ol {
+            list-style-type: lower-roman;
+        }
+
+        .product-detail-desc li {
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+
+        .product-detail-desc li p {
+            display: inline;
         }
 
         .signature-section {
@@ -336,34 +395,112 @@
         Pernikahan Pihak Kedua yang akan dilaksanakan pada {{ $eventDateText }}.
     </p>
 
+    @php
+        $product = $record->product;
+        $baseTotalPrice = (float) ($record->total_price ?? 0);
+        $productPenambahan = (float) ($record->penambahan ?? 0);
+        $productPengurangan = (float) ($record->pengurangan ?? 0);
+        $promo = (float) ($record->promo ?? 0);
+
+        if ($product && $baseTotalPrice <= 0) {
+            $baseTotalPrice = (float) ($product->product_price ?? 0);
+            if ($baseTotalPrice <= 0 && isset($items)) {
+                $baseTotalPrice = (float) $items->sum('price_public');
+            }
+        }
+
+        if ($product && $productPenambahan <= 0) {
+            $productPenambahan = (float) ($product->penambahan_publish ?? 0);
+            if ($productPenambahan <= 0 && $product?->penambahanHarga) {
+                $productPenambahan = (float) $product->penambahanHarga->sum('harga_publish');
+            }
+        }
+
+        if ($product && $productPengurangan <= 0) {
+            $productPengurangan = (float) ($product->pengurangan ?? 0);
+            if ($productPengurangan <= 0 && $product?->pengurangans) {
+                $productPengurangan = (float) $product->pengurangans->sum('amount');
+            }
+        }
+        $computedGrandTotal = \App\Services\OrderFinance::computeGrandTotalFromValues(
+            (float) $baseTotalPrice,
+            (float) $productPenambahan,
+            (float) $promo,
+            (float) $productPengurangan,
+        );
+    @endphp
+
     <div class="section-title pasal">Pasal 1</div>
-    <div class="section-title subpasal"style="font-weight: bold; margin-top: 0; margin-bottom: 6px;">Obyek Perjanjian</div>
-    <ol>
-        <li class="text-justify">
-            Obyek Perjanjian Kerjasama ini adalah penjualan jasa wedding organizer dari PIHAK PERTAMA kepada PIHAK KEDUA
-            yang terdiri dari:
-            <div style="margin-top: 6px;">
-                <b>Wedding Organizer</b>
-                <span style="float: right; white-space: nowrap;">
-                    Rp. {{ number_format((int) ($record?->grand_total ?? 0), 0, ',', '.') }}
-                </span>
-            </div>
-            <div style="margin-top: 4px;">
-                <b>{{ \Illuminate\Support\Str::upper($record?->product?->name ?? 'PAKET WEDDING ORGANIZER') }}</b>
-            </div>
-            <div style="margin-top: 6px;">Konsultasi dan Penanganan Persiapan Acara</div>
+    <div class="section-title subpasal" style="font-weight: bold; margin-top: 0; margin-bottom: 6px;">Obyek Perjanjian</div>
+    <div class="text-justify">
+        Obyek Perjanjian Kerjasama ini adalah penjualan jasa wedding organizer dari PIHAK PERTAMA kepada PIHAK KEDUA
+        yang terdiri dari:
+
+            @if (isset($items) && $items instanceof \Illuminate\Support\Collection && $items->isNotEmpty())
+                @php
+                    $groupedItems = $items->groupBy(function ($item) {
+                        return $item->vendor->name ?? 'LAIN-LAIN';
+                    });
+                @endphp
+                <ol class="product-detail-list">
+                    @foreach ($groupedItems as $vendorName => $vendorItems)
+                        @php
+                            $firstItem = $vendorItems->first();
+                            $vendor = $firstItem?->vendor;
+                            $description = $vendor?->description ?? ($firstItem?->description ?? null);
+                            $description = $description ? trim($description) : null;
+                        @endphp
+                        <li class="product-detail-item">
+                            <div class="product-detail-vendor">{{ \Illuminate\Support\Str::title($vendorName) }}</div>
+                            @if (!empty($description))
+                                <div class="product-detail-desc">
+                                    {!! $description !!}
+                                </div>
+                            @endif
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+
+            @php
+                $penambahanItems = $product?->penambahanHarga ?? collect();
+                $penguranganItems = $product?->pengurangans ?? collect();
+            @endphp
+
+            @if ($penambahanItems->isNotEmpty())
+                <div style="margin-top: 10px; font-weight: bold;">Penambahan:</div>
+                <ol type="a" style="margin-top: 6px;">
+                    @foreach ($penambahanItems as $item)
+                        <li>
+                            <span style="font-weight: bold;">{{ \Illuminate\Support\Str::title($item->vendor->name ?? 'Penambahan') }}</span>
+                            @if (!is_null($item->harga_publish) && (float) $item->harga_publish > 0)
+                                <span style="float: right; white-space: nowrap;">Rp {{ number_format((int) $item->harga_publish, 0, ',', '.') }}</span>
+                            @endif
+                            @if (!empty($item->description))
+                                <div style="margin-top: 4px;">{!! $item->description !!}</div>
+                            @endif
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+
+        @if ($penguranganItems->isNotEmpty())
+            <div style="margin-top: 10px; font-weight: bold;">Pengurangan:</div>
             <ol type="a" style="margin-top: 6px;">
-                <li>Mengkoordinir semua vendor yang telah dipesan baik oleh klien maupun paket dari {{ $companyName }}</li>
-                <li>Cetak Buku Panduan sebanyak 20 pcs</li>
-                <li>Acara dengan konsep standing/ buffet style</li>
-                <li>Durasi pekerjaan hari H max 10 jam / Halfday (include persiapan)</li>
-                <li>Jumlah Tamu maksimal 500 pax</li>
-                <li>Jumlah Tim bekerja sebanyak 8 orang</li>
-                <li>Jumlah nama list tamu VIP sebanyak 10 list nama</li>
-                <li>Area Wilayah Pekerjaan di Yogyakarta, Sleman, atau Bantul</li>
+                @foreach ($penguranganItems as $item)
+                    <li>
+                        <span style="font-weight: bold;">{{ $item->description ?? ($item->name ?? 'Pengurangan') }}</span>
+                        @if (!is_null($item->amount) && (float) $item->amount > 0)
+                            <span style="float: right; white-space: nowrap;">Rp {{ number_format((int) $item->amount, 0, ',', '.') }}</span>
+                        @endif
+                        @if (!empty($item->notes))
+                            <div style="margin-top: 4px;">{!! $item->notes !!}</div>
+                        @endif
+                    </li>
+                @endforeach
             </ol>
-        </li>
-    </ol>
+        @endif
+    </div>
 
     <div class="section-title pasal">Pasal 2</div>
     <div class="section-title subpasal" style="font-weight: bold; margin-top: 0; margin-bottom: 6px;">Sistem Pembayaran</div>
