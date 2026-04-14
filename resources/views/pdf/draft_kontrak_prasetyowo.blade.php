@@ -284,7 +284,7 @@
 
         $hari = $createdAt->translatedFormat('l');
         $tanggal = $createdAt->translatedFormat('d F Y');
-        $tempat = $company?->city ?: ($prospect?->venue ?: '__________');
+        $tempat = $company?->address ?: ($company?->city ?: '__________');
 
         $clientName = $record?->customer_name;
         if (! $clientName) {
@@ -630,7 +630,7 @@
         Demikian perjanjian kerjasama ini dibuat dengan rangkap dua dan berkekuatan hukum tetap yang sama.
     </p>
 
-    <div style="text-align: right; margin-top: 20px;">
+    <div style="text-align: right; margin-top: 60px; margin-bottom: 20px;">
         {{ $company?->city ?: '__________' }}, {{ $tanggal }}
     </div>
 
