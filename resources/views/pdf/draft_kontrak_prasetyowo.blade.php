@@ -630,7 +630,7 @@
         Demikian perjanjian kerjasama ini dibuat dengan rangkap dua dan berkekuatan hukum tetap yang sama.
     </p>
 
-    <div style="text-align: right; margin-top: 60px; margin-bottom: 20px;">
+    <div style="text-align: right; margin-top: 34px; margin-bottom: 10px;">
         {{ $company?->city ?: '__________' }}, {{ $tanggal }}
     </div>
 
