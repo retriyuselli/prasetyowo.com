@@ -72,7 +72,7 @@
 
         .section-title {
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 4px;
             margin-bottom: 3px;
             text-transform: uppercase;
             font-size: 11px;
@@ -634,7 +634,7 @@
         {{ $company?->city ?: '__________' }}, {{ $tanggal }}
     </div>
 
-    <div class="signature-section">
+    {{-- <div class="signature-section">
         <table class="signature-table">
             <tr>
                 <td>
@@ -649,7 +649,34 @@
                 </td>
             </tr>
         </table>
-    </div>
+    </div> --}}
+    <div class="signature-section" style="margin-top: 0;">
+            <table class="signature-table">
+                <tr>
+                    <td style="width: 35%;">
+                        Pihak Pertama,<br>
+                    </td>
+                    <td colspan="2" style="width: 65%;">
+                        Mengetahui,<br>
+                        {{ $companyName }}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: bottom; height: 120px;">
+                        <div style="text-decoration: underline;">
+                            {{ $record->name_ttd ?? '....................' }}
+                        </div>
+                        <b>{{ $record->title_ttd ?? 'Calon Pengantin' }}</b>
+                    </td>
+                    <td style="vertical-align: bottom; height: 100px;">
+                        <div style="text-decoration: underline;">
+                            {{ $companyOwnerName }}
+                        </div>
+                        <b>{{ $companyOwnerPosition }}</b>
+                    </td>
+                </tr>
+            </table>
+        </div>
 </body>
 
 </html>
