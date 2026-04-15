@@ -17,7 +17,6 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
-use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -233,11 +232,14 @@ class ProspectsTable
                         return $indicators;
                     }),
             ])
+            ->recordUrl(fn (Prospect $record): string => ProspectResource::getUrl('edit', ['record' => $record]))
             ->recordActions([
                 ActionGroup::make([
-                    ViewAction::make()
+                    Action::make('lihat')
+                        ->label('Lihat')
                         ->icon('heroicon-m-eye')
-                        ->tooltip('Lihat detail prospek'),
+                        ->tooltip('Lihat detail prospek')
+                        ->url(fn (Prospect $record): string => ProspectResource::getUrl('edit', ['record' => $record])),
 
                     EditAction::make()
                         ->icon('heroicon-m-pencil')

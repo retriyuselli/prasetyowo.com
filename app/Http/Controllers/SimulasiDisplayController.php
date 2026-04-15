@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\SimulasiProduk;
+use App\Services\ContractPricingService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Gate;
@@ -211,6 +212,8 @@ class SimulasiDisplayController extends Controller
 
         $financeUser = \App\Models\User::role('Finance')->first();
 
+        $pricing = (new ContractPricingService())->computeForSimulasiProduk($record, $items);
+
         $data = [
             'record' => $record,
             'items' => $items,
@@ -218,6 +221,7 @@ class SimulasiDisplayController extends Controller
             'nomorSurat' => $nomorSurat,
             'financeUser' => $financeUser,
             'company' => $company,
+            ...$pricing,
         ];
 
         $pdf = Pdf::loadView('pdf.draft_kontrak_prasetyowo', $data);

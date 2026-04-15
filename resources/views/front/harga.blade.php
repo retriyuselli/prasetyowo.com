@@ -24,25 +24,6 @@
                 <p class="text-gray-600 text-lg">Dapatkan semua fitur yang Anda butuhkan untuk mengelola bisnis wedding
                     organizer</p>
 
-                <!-- Billing Toggle Removed - Now Fixed 2 Years -->
-                <!-- 
-                <div class="mt-12 mb-8">
-                    <div class="flex items-center justify-center space-x-4">
-                        <span class="text-gray-700 font-medium">Per Bulan</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="billing-toggle" class="sr-only">
-                            <div
-                                class="w-14 h-7 bg-blue-200 rounded-full relative transition-colors duration-200 ease-in-out">
-                                <div
-                                    class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-200 ease-in-out">
-                                </div>
-                            </div>
-                        </label>
-                        <span class="text-gray-700 font-medium">Per Tahun <span class="text-green-600 font-semibold">(Hemat
-                                Lebih Banyak!)</span></span>
-                    </div>
-                </div>
-                -->
                 <div class="mt-8 mb-8">
                     <span class="inline-block bg-blue-100 text-blue-800 text-sm font-semibold px-4 py-2 rounded-full">
                         Harga berlaku untuk masa aktif 2 tahun

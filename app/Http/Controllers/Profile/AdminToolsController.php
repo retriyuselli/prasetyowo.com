@@ -504,4 +504,9 @@ class AdminToolsController extends Controller
     {
         return view('profile.admin-tools.help-center');
     }
+
+    public function planBillings()
+    {
+        return view('profile.admin-tools.plan-billings');
+    }
 }

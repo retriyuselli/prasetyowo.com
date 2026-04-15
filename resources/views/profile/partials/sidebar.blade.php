@@ -100,6 +100,7 @@
                 $isAdminDocumentations = request()->routeIs('profile.admin-tools.documentations');
                 $isAdminDocumentCategories = request()->routeIs('profile.admin-tools.document-categories');
                 $isAdminHelpCenter = request()->routeIs('profile.admin-tools.help-center');
+                $isAdminPlanBillings = request()->routeIs('profile.admin-tools.plan-billings');
                 $isAdminProjects = request()->routeIs('profile.admin-tools.projects*');
                 $isAdminNotaDinas = request()->routeIs('profile.admin-tools.nota-dinas*');
                 $isAdminBankStatements = request()->routeIs('profile.admin-tools.bank-statements*');
@@ -200,6 +201,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10a4 4 0 118 0c0 2-2 3-2 3m-2 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                     </svg>
                     <span>Pusat Bantuan</span>
+                </a>
+
+                <a href="{{ route('profile.admin-tools.plan-billings') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition {{ $isAdminPlanBillings ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .672-3 1.5S10.343 11 12 11s3 .672 3 1.5-1.343 1.5-3 1.5m0-8c1.11 0 2.08.302 2.599.75M12 6v2m0 6v2m0-10c-1.11 0-2.08.302-2.599.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Plan & Billings</span>
                 </a>
             </div>
         </div>

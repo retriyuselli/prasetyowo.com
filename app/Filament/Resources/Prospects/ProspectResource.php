@@ -59,6 +59,14 @@ class ProspectResource extends Resource
         ];
     }
 
+    public static function getRecordRouteBindingEloquentQuery(): Builder
+    {
+        return parent::getRecordRouteBindingEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

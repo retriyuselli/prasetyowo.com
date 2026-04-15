@@ -6,7 +6,7 @@
     <title>Draft Kontrak Prasetyowo</title>
     <style>
         @page {
-            margin: 140px 45px 30px 65px;
+            margin: 140px 55px 30px 70px;
         }
 
         body {
@@ -131,13 +131,35 @@
 
         .product-detail-list {
             margin-top: 6px;
+            list-style: none;
+            padding-left: 0px;
+            counter-reset: productDetail;
         }
 
         .product-detail-item {
             margin-top: 4px;
+            counter-increment: productDetail;
+            padding-left: 0 !important;
         }
 
         .product-detail-vendor {
+            font-weight: bold;
+        }
+
+        .product-detail-vendor:before {
+            content: counter(productDetail) ". ";
+            font-weight: bold;
+        }
+
+        .product-detail-header {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .product-detail-price {
+            text-align: right;
+            white-space: nowrap;
             font-weight: bold;
         }
 
@@ -165,8 +187,8 @@
 
         .product-detail-desc ol,
         .product-detail-desc ul {
-            margin: 6px 0 0 0;
-            padding-left: 40px;
+            margin: 6px 0 0 0 !important;
+            padding-left: 60px !important;
         }
 
         .product-detail-desc ol {
@@ -179,8 +201,8 @@
         }
 
         .product-detail-desc li {
-            margin-bottom: 5px;
-            padding-left: 10px;
+            margin-bottom: 5px !important;
+            padding-left: 10px !important;
         }
 
         .product-detail-desc li p {
@@ -395,46 +417,54 @@
         Pernikahan Pihak Kedua yang akan dilaksanakan pada {{ $eventDateText }}.
     </p>
 
-    @php
-        $product = $record->product;
-        $baseTotalPrice = (float) ($record->total_price ?? 0);
-        $productPenambahan = (float) ($record->penambahan ?? 0);
-        $productPengurangan = (float) ($record->pengurangan ?? 0);
-        $promo = (float) ($record->promo ?? 0);
-
-        if ($product && $baseTotalPrice <= 0) {
-            $baseTotalPrice = (float) ($product->product_price ?? 0);
-            if ($baseTotalPrice <= 0 && isset($items)) {
-                $baseTotalPrice = (float) $items->sum('price_public');
-            }
-        }
-
-        if ($product && $productPenambahan <= 0) {
-            $productPenambahan = (float) ($product->penambahan_publish ?? 0);
-            if ($productPenambahan <= 0 && $product?->penambahanHarga) {
-                $productPenambahan = (float) $product->penambahanHarga->sum('harga_publish');
-            }
-        }
-
-        if ($product && $productPengurangan <= 0) {
-            $productPengurangan = (float) ($product->pengurangan ?? 0);
-            if ($productPengurangan <= 0 && $product?->pengurangans) {
-                $productPengurangan = (float) $product->pengurangans->sum('amount');
-            }
-        }
-        $computedGrandTotal = \App\Services\OrderFinance::computeGrandTotalFromValues(
-            (float) $baseTotalPrice,
-            (float) $productPenambahan,
-            (float) $promo,
-            (float) $productPengurangan,
-        );
-    @endphp
-
     <div class="section-title pasal">Pasal 1</div>
     <div class="section-title subpasal" style="font-weight: bold; margin-top: 0; margin-bottom: 6px;">Obyek Perjanjian</div>
     <div class="text-justify">
         Obyek Perjanjian Kerjasama ini adalah penjualan jasa wedding organizer dari PIHAK PERTAMA kepada PIHAK KEDUA
         yang terdiri dari:
+
+    <div style="height: 5px;"></div>
+    <div class="section-title">PERINCIAN BIAYA</div>
+    <table class="content-table" style="width: 100%; margin-top: 3px;">
+        <tr>
+            <td style="padding: 5px 0;"><b>DREAM WEDDING PACKAGE</b></td>
+            <td style="width: 1%; white-space: nowrap; padding: 5px 0;"><b>: Rp. </b></td>
+            <td style="width: 60%; padding: 5px 0; text-align: left;">
+                <b>&nbsp;{{ number_format($baseTotalPrice, 0, ',', '.') }},-</b>
+            </td>
+        </tr>
+        @if ($productPenambahan > 0)
+            <tr>
+                <td style="padding: 5px 0;">PENAMBAHAN</td>
+                <td style="width: 1%; white-space: nowrap; padding: 5px 0;">: Rp. </td>
+                <td style="text-align: left; padding: 5px 0;">
+                    &nbsp;{{ number_format($productPenambahan, 0, ',', '.') }},-</td>
+            </tr>
+        @endif
+        @if ($productPengurangan > 0)
+            <tr>
+                <td style="padding: 5px 0;">PENGURANGAN</td>
+                <td style="width: 1%; white-space: nowrap; padding: 5px 0;">: Rp. </td>
+                <td style="text-align: left; padding: 5px 0;">
+                    &nbsp;({{ number_format($productPengurangan, 0, ',', '.') }},-)</td>
+            </tr>
+        @endif
+        @if ($promo > 0)
+            <tr>
+                <td style="padding: 5px 0;">PROMO</td>
+                <td style="width: 1%; white-space: nowrap; padding: 5px 0;">: Rp. </td>
+                <td style="text-align: left; padding: 5px 0;">
+                    &nbsp;({{ number_format($promo, 0, ',', '.') }},-)</td>
+            </tr>
+        @endif
+        <tr>
+            <td style="padding: 5px 0;"><b>TOTAL PEMBAYARAN</b></td>
+            <td style="padding: 5px 0; width: 1%; white-space: nowrap;"><b>: Rp.</b></td>
+            <td style="padding: 5px 0; text-align: left;">
+                <b>&nbsp;{{ number_format($computedGrandTotal, 0, ',', '.') }},-</b>
+            </td>
+        </tr>
+    </table>
 
             @if (isset($items) && $items instanceof \Illuminate\Support\Collection && $items->isNotEmpty())
                 @php
@@ -449,9 +479,15 @@
                             $vendor = $firstItem?->vendor;
                             $description = $vendor?->description ?? ($firstItem?->description ?? null);
                             $description = $description ? trim($description) : null;
+                            $vendorTotalPublish = (int) $vendorItems->sum('price_public');
                         @endphp
                         <li class="product-detail-item">
-                            <div class="product-detail-vendor">{{ \Illuminate\Support\Str::title($vendorName) }}</div>
+                            <table class="product-detail-header">
+                                <tr>
+                                    <td class="product-detail-vendor">{{ \Illuminate\Support\Str::title($vendorName) }}</td>
+                                    <td class="product-detail-price">Rp. {{ number_format($vendorTotalPublish, 0, ',', '.') }}</td>
+                                </tr>
+                            </table>
                             @if (!empty($description))
                                 <div class="product-detail-desc">
                                     {!! $description !!}
@@ -662,7 +698,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td style="vertical-align: bottom; height: 120px;">
+                    <td style="vertical-align: bottom; height: 80px;">
                         <div style="text-decoration: underline;">
                             {{ $record->name_ttd ?? '....................' }}
                         </div>

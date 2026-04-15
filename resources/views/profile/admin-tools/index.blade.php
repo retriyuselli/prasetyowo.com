@@ -7,7 +7,7 @@
 <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-6">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <a href="{{ route('profile.admin-tools.users') }}" class="block border border-gray-200 rounded-xl p-5 hover:bg-gray-50 transition">
-            <div class="text-sm font-semibold text-gray-900">Manajemen Pengguna</div>
+            <div class="text-sm font-semibold text-gray-900">Manajemen Pengguna1</div>
             <div class="mt-1 text-xs text-gray-600">{{ number_format($usersCount) }} pengguna</div>
         </a>
 
@@ -59,6 +59,11 @@
         <a href="{{ route('profile.admin-tools.help-center') }}" class="block border border-gray-200 rounded-xl p-5 hover:bg-gray-50 transition">
             <div class="text-sm font-semibold text-gray-900">Pusat Bantuan</div>
             <div class="mt-1 text-xs text-gray-600">Panduan penggunaan</div>
+        </a>
+
+        <a href="{{ route('profile.admin-tools.plan-billings') }}" class="block border border-gray-200 rounded-xl p-5 hover:bg-gray-50 transition">
+            <div class="text-sm font-semibold text-gray-900">Plan & Billings</div>
+            <div class="mt-1 text-xs text-gray-600">Pengaturan paket, billing, dan riwayat pembayaran</div>
         </a>
     </div>
 </div>
