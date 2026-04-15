@@ -151,34 +151,10 @@
                 </div>
             </div>
             <div class="card-body p-4 p-md-5">
-                <ul class="nav nav-pills justify-content-center gap-2 step-indicator mb-4" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="pill" href="#step-profil" role="tab" aria-controls="step-profil" aria-selected="true">
-                            <i class="bi bi-person-fill me-1"></i> Profil
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="pill" href="#step-kontak" role="tab" aria-controls="step-kontak" aria-selected="false">
-                            <i class="bi bi-telephone me-1"></i> Kontak
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="pill" href="#step-detail" role="tab" aria-controls="step-detail" aria-selected="false">
-                            <i class="bi bi-briefcase me-1"></i> Detail
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="pill" href="#step-motivasi" role="tab" aria-controls="step-motivasi" aria-selected="false">
-                            <i class="bi bi-chat-left-quote me-1"></i> Motivasi
-                        </a>
-                    </li>
-                </ul>
-
                 <form action="{{ route('data-pribadi.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <div class="tab-content mb-4">
-
-            <div class="tab-pane fade show active" id="step-profil" role="tabpanel">
+            <div class="mb-4">
+            <div class="h5 mb-3">Profil</div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="nama_lengkap" class="form-label">Nama Lengkap <span class="badge">Wajib</span></label>
@@ -200,9 +176,8 @@
                     @enderror
                 </div>
             </div>
-            </div>
-
-            <div class="tab-pane fade" id="step-kontak" role="tabpanel">
+            <hr class="my-4">
+            <div class="h5 mb-3">Kontak</div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="nomor_telepon" class="form-label">Nomor Telepon</label>
@@ -210,7 +185,7 @@
                         <span class="input-group-text">+62</span>
                         <input type="tel" class="form-control @error('nomor_telepon') is-invalid @enderror"
                             id="nomor_telepon" name="nomor_telepon" value="{{ old('nomor_telepon') }}"
-                            placeholder="8123456789 (tanpa 0 di depan)"
+                            placeholder="8123456789 (tanpa 0 di depan)" required
                             @error('nomor_telepon') aria-invalid="true" @enderror>
                     </div>
                     @error('nomor_telepon')
@@ -222,20 +197,19 @@
                     <label for="tanggal_lahir" class="form-label">Tanggal Lahir</label>
                     <input type="date" class="form-control @error('tanggal_lahir') is-invalid @enderror"
                         id="tanggal_lahir" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}"
-                        max="{{ date('Y-m-d') }}" @error('tanggal_lahir') aria-invalid="true" @enderror>
+                        max="{{ date('Y-m-d') }}" required @error('tanggal_lahir') aria-invalid="true" @enderror>
                     @error('tanggal_lahir')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
-            </div>
-
-            <div class="tab-pane fade" id="step-detail" role="tabpanel">
+            <hr class="my-4">
+            <div class="h5 mb-3">Detail</div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
                     <select class="form-select @error('jenis_kelamin') is-invalid @enderror" id="jenis_kelamin"
-                        name="jenis_kelamin" @error('jenis_kelamin') aria-invalid="true" @enderror>
+                        name="jenis_kelamin" required @error('jenis_kelamin') aria-invalid="true" @enderror>
                         <option value="">Pilih Jenis Kelamin</option>
                         <option value="Laki-laki" {{ old('jenis_kelamin') == 'Laki-laki' ? 'selected' : '' }}>
                             Laki-laki
@@ -253,7 +227,7 @@
                     <label for="pekerjaan" class="form-label">Pekerjaan</label>
                     <input type="text" class="form-control @error('pekerjaan') is-invalid @enderror"
                         id="pekerjaan" name="pekerjaan" value="{{ old('pekerjaan') }}"
-                        placeholder="Contoh: Web Developer" @error('pekerjaan') aria-invalid="true" @enderror>
+                        placeholder="Contoh: Web Developer" required @error('pekerjaan') aria-invalid="true" @enderror>
                     @error('pekerjaan')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -263,7 +237,7 @@
             <div class="mb-3">
                 <label for="alamat" class="form-label">Alamat</label>
                 <textarea class="form-control @error('alamat') is-invalid @enderror" id="alamat" name="alamat" rows="3"
-                    placeholder="Masukkan alamat lengkap Anda" @error('alamat') aria-invalid="true" @enderror>{{ old('alamat') }}</textarea>
+                    placeholder="Masukkan alamat lengkap Anda" required @error('alamat') aria-invalid="true" @enderror>{{ old('alamat') }}</textarea>
                 @error('alamat')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -272,8 +246,9 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="gaji" class="form-label">Fee {{ $companyName }} (Rp)</label>
-                    <input type="number" class="form-control @error('gaji') is-invalid @enderror" id="gaji"
-                        name="gaji" value="{{ old('gaji') }}" placeholder="Contoh: 300,000" min="0"
+                    <input type="text" inputmode="numeric" autocomplete="off"
+                        class="form-control @error('gaji') is-invalid @enderror" id="gaji" name="gaji"
+                        value="{{ old('gaji') }}" placeholder="Contoh: 300.000" required
                         @error('gaji') aria-invalid="true" @enderror>
                     @error('gaji')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -294,14 +269,14 @@
                 </div>
             </div>
             </div>
-
-            <div class="tab-pane fade" id="step-motivasi" role="tabpanel">
+            <hr class="my-4">
+            <div class="h5 mb-3">Motivasi</div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="motivasi_kerja" class="form-label">Motivasi Kerja</label>
                     <textarea class="form-control @error('motivasi_kerja') is-invalid @enderror" id="motivasi_kerja"
                         name="motivasi_kerja" rows="3" placeholder="Jelaskan motivasi kerja Anda"
-                        @error('motivasi_kerja') aria-invalid="true" @enderror>{{ old('motivasi_kerja') }}</textarea>
+                        required @error('motivasi_kerja') aria-invalid="true" @enderror>{{ old('motivasi_kerja') }}</textarea>
                     @error('motivasi_kerja')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -310,12 +285,11 @@
                     <label for="pelatihan" class="form-label">Pelatihan {{ $companyName }}</label>
                     <textarea class="form-control @error('pelatihan') is-invalid @enderror" id="pelatihan" name="pelatihan"
                         rows="3" placeholder="Jelaskan pelatihan yang pernah diikuti"
-                        @error('pelatihan') aria-invalid="true" @enderror>{{ old('pelatihan') }}</textarea>
+                        required @error('pelatihan') aria-invalid="true" @enderror>{{ old('pelatihan') }}</textarea>
                     @error('pelatihan')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-            </div>
             </div>
             </div>
             <div class="d-grid mt-4">
@@ -389,10 +363,23 @@
             }
         });
 
-        var tabTriggerList = [].slice.call(document.querySelectorAll('.step-indicator [data-bs-toggle="pill"]'));
-        tabTriggerList.forEach(function (tabTriggerEl) {
-            new bootstrap.Tab(tabTriggerEl);
-        });
+        function formatRibuan(input) {
+            const raw = String(input || '').replace(/[^\d]/g, '');
+            if (!raw) return '';
+            return raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        const gajiInput = document.getElementById('gaji');
+        if (gajiInput) {
+            gajiInput.value = formatRibuan(gajiInput.value);
+            gajiInput.addEventListener('input', function () {
+                const start = gajiInput.selectionStart;
+                const before = gajiInput.value;
+                gajiInput.value = formatRibuan(gajiInput.value);
+                const diff = gajiInput.value.length - before.length;
+                gajiInput.setSelectionRange(start + diff, start + diff);
+            });
+        }
     </script>
 
     <!-- Footer -->

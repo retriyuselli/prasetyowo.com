@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\URL;
 use Illuminate\View\View; // Import Validator
 
 class FrontendDataPribadiController extends Controller
@@ -31,16 +32,16 @@ class FrontendDataPribadiController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:data_pribadis,email',
-            'nomor_telepon' => 'nullable|string|max:20',
-            'tanggal_lahir' => 'nullable|date',
-            'jenis_kelamin' => 'nullable|string|in:Laki-laki,Perempuan',
-            'alamat' => 'nullable|string',
+            'nomor_telepon' => 'required|string|max:20',
+            'tanggal_lahir' => 'required|date',
+            'jenis_kelamin' => 'required|string|in:Laki-laki,Perempuan',
+            'alamat' => 'required|string',
             // Validasi untuk foto: harus gambar, tipe mime tertentu, dan ukuran maksimal 1MB (1024 KB)
             'foto' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:1024',
-            'pekerjaan' => 'nullable|string|max:255',
-            'gaji' => 'nullable|numeric|min:0', // Pastikan ini sudah dibersihkan dari format titik jika perlu
-            'motivasi_kerja' => 'nullable|string',
-            'pelatihan' => 'nullable|string',
+            'pekerjaan' => 'required|string|max:255',
+            'gaji' => 'required|numeric|min:0',
+            'motivasi_kerja' => 'required|string',
+            'pelatihan' => 'required|string',
         ]);
 
         // Membersihkan input gaji dari format titik sebelum validasi jika dikirim dengan format
@@ -63,9 +64,73 @@ class FrontendDataPribadiController extends Controller
             $data['foto'] = $path;
         }
 
-        DataPribadi::create($data);
+        $dataPribadi = DataPribadi::create($data);
 
-        return redirect()->route('data-pribadi.success')->with('success', 'Data pribadi berhasil disimpan!');
+        $editUrl = URL::temporarySignedRoute('data-pribadi.edit', now()->addDays(7), ['dataPribadi' => $dataPribadi->id]);
+
+        return redirect()
+            ->route('data-pribadi.success')
+            ->with('success', 'Data pribadi berhasil disimpan!')
+            ->with('edit_url', $editUrl);
+    }
+
+    public function edit(DataPribadi $dataPribadi): View
+    {
+        $updateUrl = URL::temporarySignedRoute('data-pribadi.update', now()->addDays(7), ['dataPribadi' => $dataPribadi->id]);
+
+        return view('data-pribadi.edit', compact('dataPribadi', 'updateUrl'));
+    }
+
+    public function update(Request $request, DataPribadi $dataPribadi): RedirectResponse
+    {
+        $fotoRule = $dataPribadi->foto ? 'nullable' : 'required';
+
+        $validator = Validator::make($request->all(), [
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:data_pribadis,email,' . $dataPribadi->id,
+            'nomor_telepon' => 'required|string|max:20',
+            'tanggal_lahir' => 'required|date',
+            'jenis_kelamin' => 'required|string|in:Laki-laki,Perempuan',
+            'alamat' => 'required|string',
+            'foto' => $fotoRule . '|image|mimes:jpeg,png,jpg,gif,svg|max:1024',
+            'pekerjaan' => 'required|string|max:255',
+            'gaji' => 'required|numeric|min:0',
+            'motivasi_kerja' => 'required|string',
+            'pelatihan' => 'required|string',
+        ]);
+
+        if ($request->has('gaji')) {
+            $request->merge([
+                'gaji' => str_replace('.', '', $request->input('gaji')),
+            ]);
+        }
+
+        if ($validator->fails()) {
+            return redirect()->to(URL::previous())
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $data = $validator->validated();
+
+        if ($request->hasFile('foto')) {
+            if ($dataPribadi->foto) {
+                Storage::disk('public')->delete($dataPribadi->foto);
+            }
+            $path = $request->file('foto')->store('data-pribadi-fotos', 'public');
+            $data['foto'] = $path;
+        } else {
+            unset($data['foto']);
+        }
+
+        $dataPribadi->update($data);
+
+        $editUrl = URL::temporarySignedRoute('data-pribadi.edit', now()->addDays(7), ['dataPribadi' => $dataPribadi->id]);
+
+        return redirect()
+            ->route('data-pribadi.success')
+            ->with('success', 'Data pribadi berhasil diperbarui!')
+            ->with('edit_url', $editUrl);
     }
 
     public function index(Request $request) // Tambahkan Request $request

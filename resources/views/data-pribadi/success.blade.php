@@ -56,19 +56,24 @@
                             </div>
                         </div>
                     </div>
-                    @php
-                        $isSuperAdmin = auth()->check() && auth()->user()->hasRole('super_admin');
-                    @endphp
-                    @if ($isSuperAdmin)
-                        <div class="col-md-4 text-md-end">
-                            <a href="{{ route('data-pribadi.index') }}" class="btn btn-light me-2">
+                    <div class="col-md-4 text-md-end">
+                        @if (session('edit_url'))
+                            <a href="{{ session('edit_url') }}" class="btn btn-outline-primary mb-2 me-md-2">
+                                <i class="bi bi-pencil-square me-1"></i> Edit Kembali
+                            </a>
+                        @endif
+                        @php
+                            $isSuperAdmin = auth()->check() && auth()->user()->hasRole('super_admin');
+                        @endphp
+                        @if ($isSuperAdmin)
+                            <a href="{{ route('data-pribadi.index') }}" class="btn btn-light mb-2 me-md-2">
                                 <i class="bi bi-card-checklist me-1"></i> Lihat Daftar Data
                             </a>
-                            <a href="{{ route('data-pribadi.create') }}" class="btn btn-primary">
+                            <a href="{{ route('data-pribadi.create') }}" class="btn btn-primary mb-2 me-md-2">
                                 <i class="bi bi-plus-circle me-1"></i> Tambah Lagi
                             </a>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

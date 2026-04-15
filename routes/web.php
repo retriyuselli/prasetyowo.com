@@ -271,6 +271,10 @@ Route::get('/data-pribadi/tambah', [FrontendDataPribadiController::class, 'creat
     ->name('data-pribadi.create')
     ->middleware('no-store');
 
+Route::get('/data-pribadi/{dataPribadi}/edit', [FrontendDataPribadiController::class, 'edit'])
+    ->name('data-pribadi.edit')
+    ->middleware(['signed', 'no-store']);
+
 // Route untuk menampilkan daftar data pribadi
 Route::get('/data-pribadi', [FrontendDataPribadiController::class, 'index'])
     ->name('data-pribadi.index')
@@ -280,6 +284,10 @@ Route::get('/data-pribadi', [FrontendDataPribadiController::class, 'index'])
 Route::post('/data-pribadi', [FrontendDataPribadiController::class, 'store'])
     ->name('data-pribadi.store')
     ->middleware('no-store');
+
+Route::put('/data-pribadi/{dataPribadi}', [FrontendDataPribadiController::class, 'update'])
+    ->name('data-pribadi.update')
+    ->middleware(['signed', 'no-store']);
 
 // Route untuk halaman sukses setelah submit
 Route::get('/data-pribadi/success', [FrontendDataPribadiController::class, 'success'])
