@@ -29,6 +29,12 @@ class FrontendDataPribadiController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->has('gaji')) {
+            $request->merge([
+                'gaji' => preg_replace('/[^\d]/', '', (string) $request->input('gaji')),
+            ]);
+        }
+
         $validator = Validator::make($request->all(), [
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:data_pribadis,email',
@@ -43,13 +49,6 @@ class FrontendDataPribadiController extends Controller
             'motivasi_kerja' => 'required|string',
             'pelatihan' => 'required|string',
         ]);
-
-        // Membersihkan input gaji dari format titik sebelum validasi jika dikirim dengan format
-        if ($request->has('gaji')) {
-            $request->merge([
-                'gaji' => str_replace('.', '', $request->input('gaji')),
-            ]);
-        }
 
         if ($validator->fails()) {
             return redirect()->route('data-pribadi.create')
@@ -85,6 +84,12 @@ class FrontendDataPribadiController extends Controller
     {
         $fotoRule = $dataPribadi->foto ? 'nullable' : 'required';
 
+        if ($request->has('gaji')) {
+            $request->merge([
+                'gaji' => preg_replace('/[^\d]/', '', (string) $request->input('gaji')),
+            ]);
+        }
+
         $validator = Validator::make($request->all(), [
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:data_pribadis,email,' . $dataPribadi->id,
@@ -98,12 +103,6 @@ class FrontendDataPribadiController extends Controller
             'motivasi_kerja' => 'required|string',
             'pelatihan' => 'required|string',
         ]);
-
-        if ($request->has('gaji')) {
-            $request->merge([
-                'gaji' => str_replace('.', '', $request->input('gaji')),
-            ]);
-        }
 
         if ($validator->fails()) {
             return redirect()->to(URL::previous())
