@@ -5,6 +5,20 @@
 
 @section('profile-content')
 <div class="space-y-6">
+    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
+        <div class="flex items-start gap-3">
+            <div class="mt-0.5">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86l-7.4 12.84A2 2 0 004.62 20h14.76a2 2 0 001.73-3.3l-7.4-12.84a2 2 0 00-3.46 0z" />
+                </svg>
+            </div>
+            <div>
+                <div class="text-sm font-semibold">COMING SOON</div>
+                <div class="text-sm">Halaman ini masih tahap dummy dan akan disesuaikan dengan data billing sebenarnya.</div>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden p-6">
         <h2 class="text-base font-semibold text-gray-900">Subscription Plan</h2>
 
