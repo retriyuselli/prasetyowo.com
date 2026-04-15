@@ -269,7 +269,7 @@ Route::get('/laporan/net-cash-flow/pdf/stream', [ReportController::class, 'strea
 // Route untuk menampilkan form tambah data pribadi
 Route::get('/data-pribadi/tambah', [FrontendDataPribadiController::class, 'create'])
     ->name('data-pribadi.create')
-    ->middleware($authNoStore);
+    ->middleware('no-store');
 
 // Route untuk menampilkan daftar data pribadi
 Route::get('/data-pribadi', [FrontendDataPribadiController::class, 'index'])
@@ -279,12 +279,12 @@ Route::get('/data-pribadi', [FrontendDataPribadiController::class, 'index'])
 // Route untuk menyimpan data baru dari form
 Route::post('/data-pribadi', [FrontendDataPribadiController::class, 'store'])
     ->name('data-pribadi.store')
-    ->middleware($authNoStore);
+    ->middleware('no-store');
 
 // Route untuk halaman sukses setelah submit
 Route::get('/data-pribadi/success', [FrontendDataPribadiController::class, 'success'])
     ->name('data-pribadi.success')
-    ->middleware($authNoStore);
+    ->middleware('no-store');
 
 // AUTHENTICATION
 Route::middleware(['guest', 'no-store'])->group(function () {
