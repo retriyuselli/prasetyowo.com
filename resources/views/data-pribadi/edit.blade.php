@@ -167,6 +167,23 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="no_rekening" class="form-label">No. Rekening</label>
+                                    <input type="text" inputmode="numeric" autocomplete="off"
+                                        class="form-control @error('no_rekening') is-invalid @enderror" id="no_rekening" name="no_rekening"
+                                        value="{{ old('no_rekening', $dataPribadi->no_rekening) }}" placeholder="Masukkan nomor rekening" required>
+                                    @error('no_rekening')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="bank_name" class="form-label">Nama Bank</label>
+                                    <input type="text" class="form-control @error('bank_name') is-invalid @enderror" id="bank_name" name="bank_name"
+                                        value="{{ old('bank_name', $dataPribadi->bank_name) }}" placeholder="Contoh: BCA" required>
+                                    @error('bank_name')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
 
                         <hr class="my-4">
@@ -265,6 +282,10 @@
             return raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
+        function digitsOnly(input) {
+            return String(input || '').replace(/[^\d]/g, '');
+        }
+
         const gajiInput = document.getElementById('gaji');
         if (gajiInput) {
             gajiInput.value = formatRibuan(gajiInput.value);
@@ -274,6 +295,18 @@
                 gajiInput.value = formatRibuan(gajiInput.value);
                 const diff = gajiInput.value.length - before.length;
                 gajiInput.setSelectionRange(start + diff, start + diff);
+            });
+        }
+
+        const noRekeningInput = document.getElementById('no_rekening');
+        if (noRekeningInput) {
+            noRekeningInput.value = digitsOnly(noRekeningInput.value);
+            noRekeningInput.addEventListener('input', function () {
+                const start = noRekeningInput.selectionStart;
+                const before = noRekeningInput.value;
+                noRekeningInput.value = digitsOnly(noRekeningInput.value);
+                const diff = noRekeningInput.value.length - before.length;
+                noRekeningInput.setSelectionRange(start + diff, start + diff);
             });
         }
     </script>

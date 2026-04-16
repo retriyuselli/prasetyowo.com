@@ -36,6 +36,13 @@ class DataPribadisTable
                     ->searchable()
                     ->prefix('+62')
                     ->icon('heroicon-s-phone'),
+                TextColumn::make('no_rekening')
+                    ->label('No. Rekening')
+                    ->searchable()
+                    ->copyable(),
+                TextColumn::make('bank_name')
+                    ->label('Bank')
+                    ->searchable(),
                 TextColumn::make('tanggal_lahir')
                     ->date('d M Y')
                     ->sortable(),

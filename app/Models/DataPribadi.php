@@ -21,6 +21,8 @@ class DataPribadi extends Model
         'nama_lengkap',
         'email',
         'nomor_telepon',
+        'no_rekening',
+        'bank_name',
         'tanggal_lahir',
         'tanggal_mulai_gabung',
         'jenis_kelamin',
@@ -33,6 +35,7 @@ class DataPribadi extends Model
         // Encrypted fields
         'gaji_encrypted',
         'nomor_telepon_encrypted',
+        'no_rekening_encrypted',
         'alamat_encrypted',
         // Audit fields
         'last_salary_accessed_at',
@@ -45,6 +48,7 @@ class DataPribadi extends Model
     protected $encrypted = [
         'gaji',
         'nomor_telepon',
+        'no_rekening',
         'alamat',
     ];
 
@@ -54,6 +58,7 @@ class DataPribadi extends Model
     protected $hidden = [
         'gaji_encrypted',
         'nomor_telepon_encrypted',
+        'no_rekening_encrypted',
         'alamat_encrypted',
     ];
 
@@ -141,6 +146,40 @@ class DataPribadi extends Model
 
         } catch (Exception $e) {
             Log::error('Failed to decrypt phone number', [
+                'data_pribadi_id' => $this->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Encrypt sensitive data mutator - NO REKENING
+     */
+    public function setNoRekeningAttribute($value)
+    {
+        if (! is_null($value)) {
+            $cleanedValue = preg_replace('/\D+/', '', (string) $value);
+            $this->attributes['no_rekening_encrypted'] = Crypt::encryptString($cleanedValue);
+            $this->attributes['no_rekening'] = null;
+        }
+    }
+
+    /**
+     * Decrypt sensitive data accessor - NO REKENING
+     */
+    public function getNoRekeningAttribute()
+    {
+        try {
+            if (! empty($this->attributes['no_rekening_encrypted'])) {
+                return Crypt::decryptString($this->attributes['no_rekening_encrypted']);
+            }
+
+            return $this->attributes['no_rekening'] ?? null;
+
+        } catch (Exception $e) {
+            Log::error('Failed to decrypt account number', [
                 'data_pribadi_id' => $this->id,
                 'error' => $e->getMessage(),
             ]);

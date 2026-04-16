@@ -34,25 +34,40 @@ class DataPribadiForm
                         TextInput::make('nomor_telepon')
                             ->tel()
                             ->prefix('+62')
+                            ->required()
                             ->placeholder('81234567890')
                             ->telRegex('/^[0-9]{9,15}$/')
                             ->maxLength(20),
+                        TextInput::make('no_rekening')
+                            ->required()
+                            ->numeric()
+                            ->rule('regex:/^\d+$/')
+                            ->maxLength(50)
+                            ->placeholder('Masukkan nomor rekening'),
+                        TextInput::make('bank_name')
+                            ->required()
+                            ->maxLength(100)
+                            ->placeholder('Nama bank'),
                         DatePicker::make('tanggal_lahir')
+                            ->required()
                             ->native(false)
                             ->displayFormat('d/m/Y'),
                         Select::make('jenis_kelamin')
+                            ->required()
                             ->options([
                                 'Laki-laki' => 'Laki-laki',
                                 'Perempuan' => 'Perempuan',
                             ])
                             ->placeholder('Pilih jenis kelamin'),
                         FileUpload::make('foto')
+                            ->required()
                             ->image()
                             ->imageEditor()
                             ->maxSize(1024)
                             ->columnSpanFull()
                             ->helperText('Unggah foto profil (maks. 1MB).'),
                         Textarea::make('alamat')
+                            ->required()
                             ->rows(3)
                             ->columnSpanFull()
                             ->placeholder('Masukkan alamat lengkap'),
@@ -61,19 +76,23 @@ class DataPribadiForm
                     ->columns(2)
                     ->schema([
                         TextInput::make('pekerjaan')
+                            ->required()
                             ->maxLength(255)
                             ->placeholder('Masukkan pekerjaan saat ini'),
                         TextInput::make('gaji')
+                            ->required()
                             ->numeric()
                             ->prefix('Rp')
                             ->mask(RawJs::make('$money($input)'))
                             ->stripCharacters(',')
                             ->placeholder('0'),
                         Textarea::make('motivasi_kerja')
+                            ->required()
                             ->rows(3)
                             ->columnSpanFull()
                             ->placeholder('Jelaskan motivasi kerja Anda'),
                         RichEditor::make('pelatihan')
+                            ->required()
                             ->columnSpanFull()
                             ->placeholder('Pelatihan yang pernah diikuti di Makna'),
                     ]),
