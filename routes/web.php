@@ -326,6 +326,7 @@ Route::middleware($authNoStore)->group(function () {
         Route::get('/roles', [AdminToolsController::class, 'roles'])->name('profile.admin-tools.roles');
         Route::get('/company', [AdminToolsController::class, 'company'])->name('profile.admin-tools.company');
         Route::get('/branding', [AdminToolsController::class, 'branding'])->name('profile.admin-tools.branding');
+        Route::delete('/branding/{logo}', [AdminToolsController::class, 'brandingDestroy'])->name('profile.admin-tools.branding.destroy');
         Route::get('/sops', [AdminToolsController::class, 'sops'])->name('profile.admin-tools.sops');
         Route::get('/documentations', [AdminToolsController::class, 'documentations'])->name('profile.admin-tools.documentations');
         Route::get('/document-categories', [AdminToolsController::class, 'documentCategories'])->name('profile.admin-tools.document-categories');
@@ -342,6 +343,16 @@ Route::middleware($authNoStore)->group(function () {
         Route::get('/nota-dinas-details/{notaDinasDetail}/invoice/view', [NotaDinasInvoiceFileController::class, 'view'])->name('profile.admin-tools.nota-dinas-details.invoice.view');
         Route::get('/help-center', [AdminToolsController::class, 'helpCenter'])->name('profile.admin-tools.help-center');
         Route::get('/plan-billings', [AdminToolsController::class, 'planBillings'])->name('profile.admin-tools.plan-billings');
+        Route::get('/plan-billings/create', [AdminToolsController::class, 'planBillingsCreate'])->name('profile.admin-tools.plan-billings.create');
+        Route::get('/plan-billings/billing-settings', [AdminToolsController::class, 'planBillingsBillingSettings'])->name('profile.admin-tools.plan-billings.billing-settings');
+        Route::get('/plan-billings/edit', [AdminToolsController::class, 'planBillingsEdit'])->name('profile.admin-tools.plan-billings.edit');
+        Route::put('/plan-billings', [AdminToolsController::class, 'planBillingsUpdate'])->name('profile.admin-tools.plan-billings.update');
+        Route::get('/plan-billings/invoice/{billing}', [AdminToolsController::class, 'planBillingsInvoiceView'])->name('profile.admin-tools.plan-billings.invoice.view');
+        Route::post('/plan-billings/billing', [AdminToolsController::class, 'planBillingsBillingStore'])->name('profile.admin-tools.plan-billings.billing.store');
+        Route::post('/plan-billings/billing/{billing}/mark-paid', [AdminToolsController::class, 'planBillingsBillingMarkPaid'])->name('profile.admin-tools.plan-billings.billing.mark-paid');
+        Route::get('/plan-billings/billing/{billing}/edit', [AdminToolsController::class, 'planBillingsBillingEdit'])->name('profile.admin-tools.plan-billings.billing.edit');
+        Route::put('/plan-billings/billing/{billing}', [AdminToolsController::class, 'planBillingsBillingUpdate'])->name('profile.admin-tools.plan-billings.billing.update');
+        Route::delete('/plan-billings/billing/{billing}', [AdminToolsController::class, 'planBillingsBillingDestroy'])->name('profile.admin-tools.plan-billings.billing.destroy');
     });
     Route::get('/dashboard', function () {
         return redirect()->route('filament.admin.pages.dashboard');

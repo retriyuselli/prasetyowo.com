@@ -13,6 +13,7 @@
                     <th class="py-3 pr-4">Kategori</th>
                     <th class="py-3 pr-4">Aktif</th>
                     <th class="py-3 pr-4">Urutan</th>
+                    <th class="py-3 pr-4">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
@@ -26,6 +27,23 @@
                             </span>
                         </td>
                         <td class="py-3 pr-4 text-xs text-gray-600">{{ (int) $logo->display_order }}</td>
+                        <td class="py-3 pr-4">
+                            <div class="flex items-center gap-2">
+                                <a href="{{ \App\Filament\Resources\CompanyLogos\CompanyLogoResource::getUrl('edit', ['record' => $logo]) }}"
+                                    class="inline-flex items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 text-xs font-semibold hover:bg-gray-50 transition">
+                                    Edit
+                                </a>
+                                <form action="{{ route('profile.admin-tools.branding.destroy', ['logo' => $logo->id]) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="inline-flex items-center px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition"
+                                        onclick="return confirm('Hapus logo ini?');">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
@@ -37,4 +55,3 @@
     </div>
 </div>
 @endsection
-

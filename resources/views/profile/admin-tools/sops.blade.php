@@ -20,6 +20,7 @@
                     <th class="py-3 pr-4">Versi</th>
                     <th class="py-3 pr-4">Status</th>
                     <th class="py-3 pr-4">Updated</th>
+                    <th class="py-3 pr-4">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
@@ -34,6 +35,22 @@
                             </span>
                         </td>
                         <td class="py-3 pr-4 text-xs text-gray-600">{{ optional($sop->updated_at)->diffForHumans() }}</td>
+                        <td class="py-3 pr-4">
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('sop.print', $sop->id) }}"
+                                    class="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition"
+                                    target="_blank"
+                                    rel="noopener">
+                                    View
+                                </a>
+                                <a href="{{ route('sop.pdf', $sop->id) }}"
+                                    class="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition"
+                                    target="_blank"
+                                    rel="noopener">
+                                    PDF
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
@@ -45,4 +62,3 @@
     </div>
 </div>
 @endsection
-

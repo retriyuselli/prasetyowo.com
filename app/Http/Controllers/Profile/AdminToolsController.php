@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Profile;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\CompanyLogo;
+use App\Models\CompanySubscription;
+use App\Models\CompanySubscriptionBilling;
 use App\Models\BankReconciliationItem;
 use App\Models\BankStatement;
 use App\Models\BankTransaction;
@@ -17,6 +19,8 @@ use App\Models\Order;
 use App\Models\Sop;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
 class AdminToolsController extends Controller
@@ -78,6 +82,15 @@ class AdminToolsController extends Controller
         return view('profile.admin-tools.branding', [
             'logos' => CompanyLogo::query()->ordered()->paginate(20),
         ]);
+    }
+
+    public function brandingDestroy(CompanyLogo $logo)
+    {
+        $logo->delete();
+
+        return redirect()
+            ->route('profile.admin-tools.branding')
+            ->with('success', 'Logo berhasil dihapus.');
     }
 
     public function sops(Request $request)
@@ -213,7 +226,7 @@ class AdminToolsController extends Controller
         $profitSum = $grandTotalSum - $expensesSum;
         $profitAvg = $projectsCount > 0 ? (int) round($profitSum / $projectsCount) : 0;
 
-        return view('profile.admin-tools.projects', [
+        return view('profile.admin-tools.projects.index', [
             'q' => $q,
             'projects' => $projectsQuery->paginate(20)->withQueryString(),
             'projectsCount' => $projectsCount,
@@ -239,7 +252,7 @@ class AdminToolsController extends Controller
             'dataPengeluaran.notaDinasDetail.notaDinas',
         ]);
 
-        return view('profile.admin-tools.project-show', [
+        return view('profile.admin-tools.projects.show', [
             'order' => $order,
         ]);
     }
@@ -259,7 +272,7 @@ class AdminToolsController extends Controller
             ->unique('id')
             ->values();
 
-        return view('profile.admin-tools.project-product', [
+        return view('profile.admin-tools.projects.product', [
             'order' => $order,
             'products' => $products,
         ]);
@@ -507,6 +520,407 @@ class AdminToolsController extends Controller
 
     public function planBillings()
     {
-        return view('profile.admin-tools.plan-billings');
+        $user = Auth::user();
+        $canEdit = $user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com';
+
+        $company = Company::query()->latest('id')->first();
+        $subscription = null;
+        $billings = collect();
+
+        $latestDpBilling = null;
+        $latestPelunasanBilling = null;
+        $planPrice = 8500000;
+        $billingTotalActive = 0;
+        $billingTotalPaid = 0;
+        $billingRemaining = 0;
+
+        if ($company) {
+            $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+
+            if ($subscription) {
+                $planPrice = (int) ($subscription->plan_price ?? 8500000);
+                $billingTotalActive = (int) $subscription->billings()->where('status', '!=', 'canceled')->sum('amount');
+
+                $billings = $subscription->billings()->latest('billed_at')->latest('id')->limit(3)->get();
+                $latestDpBilling = $subscription->billings()->where('name', 'Down Payment')->latest('billed_at')->latest('id')->first();
+                $latestPelunasanBilling = $subscription->billings()->where('name', 'Pelunasan')->latest('billed_at')->latest('id')->first();
+
+                $dpAmount = (int) ($latestDpBilling?->amount ?? 0);
+                $pelunasanAmount = (int) ($latestPelunasanBilling?->amount ?? 0);
+                $billingTotalPaid = $dpAmount + $pelunasanAmount;
+                $billingRemaining = max(0, $planPrice - $billingTotalPaid);
+            }
+        }
+
+        return view('profile.admin-tools.plan-billings.index', [
+            'canEdit' => $canEdit,
+            'subscription' => $subscription,
+            'billings' => $billings,
+            'latestDpBilling' => $latestDpBilling,
+            'latestPelunasanBilling' => $latestPelunasanBilling,
+            'planPrice' => $planPrice,
+            'billingTotalActive' => $billingTotalActive,
+            'billingTotalPaid' => $billingTotalPaid,
+            'billingRemaining' => $billingRemaining,
+        ]);
+    }
+
+    public function planBillingsCreate()
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        CompanySubscription::query()->firstOrCreate(
+            ['company_id' => $company->id],
+            [
+                'plan_code' => 'hastana',
+                'plan_name' => 'Anggota Hastana',
+                'plan_price' => 8500000,
+                'billing_cycle' => '2_years',
+                'usage_reset_at' => now(),
+                'on_demand_enabled' => false,
+                'status' => 'active',
+            ]
+        );
+
+        return redirect()->route('profile.admin-tools.plan-billings.edit');
+    }
+
+    public function planBillingsEdit()
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        if (! $subscription) {
+            return redirect()
+                ->route('profile.admin-tools.plan-billings')
+                ->with('error', 'Subscription belum ada. Silakan klik Create terlebih dahulu.');
+        }
+
+        return view('profile.admin-tools.plan-billings.edit', [
+            'subscription' => $subscription,
+        ]);
+    }
+
+    public function planBillingsBillingSettings()
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        if (! $subscription) {
+            return redirect()
+                ->route('profile.admin-tools.plan-billings')
+                ->with('error', 'Subscription belum ada. Silakan klik Create terlebih dahulu.');
+        }
+
+        $latestDpBilling = $subscription->billings()->where('name', 'Down Payment')->latest('billed_at')->latest('id')->first();
+        $latestPelunasanBilling = $subscription->billings()->where('name', 'Pelunasan')->latest('billed_at')->latest('id')->first();
+
+        $planPrice = (int) ($subscription->plan_price ?? 8500000);
+        $billingTotalActive = (int) $subscription->billings()->where('status', '!=', 'canceled')->sum('amount');
+        $billingTotalPaid = (int) ($latestDpBilling?->amount ?? 0) + (int) ($latestPelunasanBilling?->amount ?? 0);
+        $billingRemaining = max(0, $planPrice - $billingTotalPaid);
+
+        return view('profile.admin-tools.plan-billings.billing-settings', [
+            'subscription' => $subscription,
+            'latestDpBilling' => $latestDpBilling,
+            'latestPelunasanBilling' => $latestPelunasanBilling,
+            'planPrice' => $planPrice,
+            'billingTotalActive' => $billingTotalActive,
+            'billingTotalPaid' => $billingTotalPaid,
+            'billingRemaining' => $billingRemaining,
+        ]);
+    }
+
+    public function planBillingsUpdate(Request $request)
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        abort_unless((bool) $subscription, 404);
+
+        $validated = $request->validate([
+            'plan_code' => ['required', 'in:hastana,non_hastana'],
+            'usage_reset_at' => ['nullable', 'date'],
+            'on_demand_enabled' => ['nullable', 'boolean'],
+            'status' => ['required', 'in:active,inactive,canceled'],
+        ]);
+
+        $planName = $validated['plan_code'] === 'hastana' ? 'Anggota Hastana' : 'Non Hastana';
+        $planPrice = $validated['plan_code'] === 'hastana' ? 8500000 : 10000000;
+
+        $billingTotalActive = (int) $subscription->billings()->where('status', '!=', 'canceled')->sum('amount');
+        if ($billingTotalActive > (int) $planPrice) {
+            throw ValidationException::withMessages([
+                'plan_code' => 'Total invoice saat ini (Rp ' . number_format($billingTotalActive, 0, ',', '.') . ') melebihi nominal plan yang dipilih (Rp ' . number_format((int) $planPrice, 0, ',', '.') . '). Sesuaikan invoice atau batalkan invoice terlebih dahulu.',
+            ]);
+        }
+
+        $subscription->update([
+            'plan_code' => $validated['plan_code'],
+            'plan_name' => $planName,
+            'plan_price' => $planPrice,
+            'billing_cycle' => '2_years',
+            'usage_reset_at' => $validated['usage_reset_at'] ?? null,
+            'on_demand_enabled' => (bool) ($validated['on_demand_enabled'] ?? false),
+            'status' => $validated['status'],
+            'canceled_at' => $validated['status'] === 'canceled' ? now() : null,
+        ]);
+
+        return redirect()
+            ->route('profile.admin-tools.plan-billings')
+            ->with('success', 'Plan & Billings berhasil diperbarui.');
+    }
+
+    public function planBillingsInvoiceView(CompanySubscriptionBilling $billing)
+    {
+        $user = Auth::user();
+        abort_unless((bool) $user, 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        abort_unless((bool) $subscription && (int) $billing->company_subscription_id === (int) $subscription->id, 404);
+
+        $dpPaid = $subscription->billings()->where('name', 'Down Payment')->where('status', 'paid')->exists();
+        $pelunasanPaid = $subscription->billings()->where('name', 'Pelunasan')->where('status', 'paid')->exists();
+        $dpBilling = $subscription->billings()
+            ->where('name', 'Down Payment')
+            ->where('status', '!=', 'canceled')
+            ->latest('billed_at')
+            ->latest('id')
+            ->first();
+        $pelunasanBilling = $subscription->billings()
+            ->where('name', 'Pelunasan')
+            ->where('status', '!=', 'canceled')
+            ->latest('billed_at')
+            ->latest('id')
+            ->first();
+
+        $dpAmount = (int) ($dpBilling?->amount ?? 0);
+        $pelunasanAmount = (int) ($pelunasanBilling?->amount ?? 0);
+
+        $totalPembayaran = $dpAmount + $pelunasanAmount;
+        $planPrice = (int) ($subscription->plan_price ?? 0);
+        $isSubscriptionPaidByAmount = $planPrice > 0 && $totalPembayaran === $planPrice;
+
+        $isSubscriptionPaid = $isSubscriptionPaidByAmount || ($dpPaid && $pelunasanPaid);
+        $isSubscriptionPartiallyPaid = ! $isSubscriptionPaid && ($totalPembayaran > 0);
+
+        $pdf = app('dompdf.wrapper')->loadView('profile.admin-tools.plan-billings.invoice-subscription', [
+            'company' => $company,
+            'subscription' => $subscription,
+            'billing' => $billing,
+            'isSubscriptionPaid' => $isSubscriptionPaid,
+            'isSubscriptionPartiallyPaid' => $isSubscriptionPartiallyPaid,
+            'isSubscriptionPaidByAmount' => $isSubscriptionPaidByAmount,
+            'dpBilling' => $dpBilling,
+            'pelunasanBilling' => $pelunasanBilling,
+        ]);
+
+        return $pdf->stream('invoice-subscription-' . $billing->id . '.pdf');
+    }
+
+    public function planBillingsBillingStore(Request $request)
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        if (! $subscription) {
+            return redirect()
+                ->route('profile.admin-tools.plan-billings')
+                ->with('error', 'Subscription belum ada. Silakan klik Create terlebih dahulu.');
+        }
+
+        $validated = $request->validate([
+            'type' => ['required', 'in:dp,pelunasan'],
+            'amount' => ['required', 'integer', 'min:0'],
+            'billed_at' => ['nullable', 'date'],
+        ]);
+
+        $planPrice = (int) ($subscription->plan_price ?? 8500000);
+        $billingTotalActive = (int) $subscription->billings()->where('status', '!=', 'canceled')->sum('amount');
+        $amount = (int) $validated['amount'];
+        $totalAfter = $billingTotalActive + $amount;
+        if ($totalAfter > $planPrice) {
+            throw ValidationException::withMessages([
+                'amount' => 'Total nominal invoice (Rp ' . number_format($totalAfter, 0, ',', '.') . ') melebihi nominal plan (Rp ' . number_format($planPrice, 0, ',', '.') . ').',
+            ]);
+        }
+        if ($validated['type'] === 'pelunasan' && $totalAfter !== $planPrice) {
+            throw ValidationException::withMessages([
+                'amount' => 'Jika membuat invoice Pelunasan, total DP + Pelunasan harus sama dengan nominal plan (Rp ' . number_format($planPrice, 0, ',', '.') . ').',
+            ]);
+        }
+
+        if ($validated['type'] === 'dp') {
+            $name = 'Down Payment';
+        } elseif ($validated['type'] === 'pelunasan') {
+            $name = 'Pelunasan';
+        } else {
+            abort(404);
+        }
+
+        $existingBilling = $subscription->billings()
+            ->where('name', $name)
+            ->where('status', '!=', 'canceled')
+            ->latest('billed_at')
+            ->latest('id')
+            ->first();
+
+        if ($existingBilling && ($existingBilling->status ?? '') === 'paid') {
+            throw ValidationException::withMessages([
+                'type' => 'Invoice ' . $name . ' sudah LUNAS. Tidak bisa menambahkan nominal lagi.',
+            ]);
+        }
+
+        if ($existingBilling) {
+            $existingBilling->update([
+                'amount' => (int) $existingBilling->amount + (int) $validated['amount'],
+                'billed_at' => $validated['billed_at'] ?? $existingBilling->billed_at ?? now(),
+                'status' => 'unpaid',
+            ]);
+        } else {
+            $subscription->billings()->create([
+                'name' => $name,
+                'amount' => (int) $validated['amount'],
+                'currency' => 'IDR',
+                'billed_at' => $validated['billed_at'] ?? now(),
+                'status' => 'unpaid',
+                'invoice_url' => null,
+            ]);
+        }
+
+        return redirect()
+            ->route('profile.admin-tools.plan-billings.billing-settings')
+            ->with('success', 'Invoice ' . $name . ' berhasil disimpan.');
+    }
+
+    public function planBillingsBillingMarkPaid(CompanySubscriptionBilling $billing)
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        abort_unless((bool) $subscription && (int) $billing->company_subscription_id === (int) $subscription->id, 404);
+
+        $billing->update([
+            'status' => 'paid',
+        ]);
+
+        return redirect()
+            ->route('profile.admin-tools.plan-billings.billing-settings')
+            ->with('success', 'Invoice berhasil ditandai lunas.');
+    }
+
+    public function planBillingsBillingEdit(CompanySubscriptionBilling $billing)
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        abort_unless((bool) $subscription && (int) $billing->company_subscription_id === (int) $subscription->id, 404);
+
+        return view('profile.admin-tools.plan-billings.invoice-edit', [
+            'subscription' => $subscription,
+            'billing' => $billing,
+            'planPrice' => (int) ($subscription->plan_price ?? 8500000),
+            'billingTotalPaid' => (int) ($subscription->billings()->where('name', 'Down Payment')->latest('billed_at')->latest('id')->value('amount') ?? 0)
+                + (int) ($subscription->billings()->where('name', 'Pelunasan')->latest('billed_at')->latest('id')->value('amount') ?? 0),
+        ]);
+    }
+
+    public function planBillingsBillingUpdate(Request $request, CompanySubscriptionBilling $billing)
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        abort_unless((bool) $subscription && (int) $billing->company_subscription_id === (int) $subscription->id, 404);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'integer', 'min:0'],
+            'billed_at' => ['nullable', 'date'],
+            'status' => ['required', 'in:unpaid,paid,canceled'],
+        ]);
+
+        $planPrice = (int) ($subscription->plan_price ?? 8500000);
+        $otherTotalActive = (int) $subscription->billings()
+            ->where('status', '!=', 'canceled')
+            ->where('id', '!=', $billing->id)
+            ->sum('amount');
+        $amount = (int) $validated['amount'];
+        $totalAfter = $otherTotalActive + ($validated['status'] === 'canceled' ? 0 : $amount);
+
+        if ($totalAfter > $planPrice) {
+            throw ValidationException::withMessages([
+                'amount' => 'Total nominal invoice (Rp ' . number_format($totalAfter, 0, ',', '.') . ') melebihi nominal plan (Rp ' . number_format($planPrice, 0, ',', '.') . ').',
+            ]);
+        }
+
+        if ($validated['name'] === 'Pelunasan' && $validated['status'] !== 'canceled' && $totalAfter !== $planPrice) {
+            throw ValidationException::withMessages([
+                'amount' => 'Jika ada invoice Pelunasan, total DP + Pelunasan harus sama dengan nominal plan (Rp ' . number_format($planPrice, 0, ',', '.') . ').',
+            ]);
+        }
+
+        $billing->update([
+            'name' => $validated['name'],
+            'amount' => (int) $validated['amount'],
+            'billed_at' => $validated['billed_at'] ?? null,
+            'status' => $validated['status'],
+        ]);
+
+        return redirect()
+            ->route('profile.admin-tools.plan-billings.billing-settings')
+            ->with('success', 'Invoice berhasil diperbarui.');
+    }
+
+    public function planBillingsBillingDestroy(CompanySubscriptionBilling $billing)
+    {
+        $user = Auth::user();
+        abort_unless($user && strtolower((string) $user->email) === 'ramadhona.utama@gmail.com', 403);
+
+        $company = Company::query()->latest('id')->first();
+        abort_unless((bool) $company, 404);
+
+        $subscription = CompanySubscription::query()->where('company_id', $company->id)->first();
+        abort_unless((bool) $subscription && (int) $billing->company_subscription_id === (int) $subscription->id, 404);
+
+        $billing->delete();
+
+        return redirect()
+            ->route('profile.admin-tools.plan-billings.billing-settings')
+            ->with('success', 'Invoice berhasil dihapus.');
     }
 }
