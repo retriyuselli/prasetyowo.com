@@ -93,6 +93,7 @@
 
         th,
         td {
+            font-size: 11px;
             padding: 4px 6px;
             text-align: left;
             vertical-align: top;
@@ -106,6 +107,15 @@
         table.bordered th,
         table.bordered td {
             border: 1px solid #ddd;
+        }
+
+        table.bordered,
+        table.bordered th,
+        table.bordered td,
+        .items-table,
+        .items-table th,
+        .items-table td {
+            font-size: 11px !important;
         }
 
         /* Invoice Title */
@@ -381,6 +391,11 @@
             margin: 0;
         }
 
+        .notes-content,
+        .notes-content * {
+            font-size: 11px !important;
+        }
+
         .notes-content li {
             list-style: none;
             margin-bottom: 0px;
@@ -634,6 +649,104 @@
         </table>
     </div>
 
+    <!-- Detail Paket Awal -->
+    @if (($order->items ?? collect())->count() > 0)
+        <div class="section-container" style="margin-top: 20px;">
+            <h3 class="sub-section-title"
+                style="font-size: 12px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                Rincian Paket Awal</h3>
+            @php
+                $paketAwalTotal = 0;
+            @endphp
+            @foreach (($order->items ?? collect()) as $index => $item)
+                @php
+                    $qty = (int) ($item->quantity ?? 0);
+                    $unitPriceFromOrder = (int) ($item->unit_price ?? 0);
+                    $product = $item->product;
+                    $components = $product?->vendorItems ?? collect();
+                    $componentsTotal = (int)
+                        $components->sum(function ($c) {
+                            return ((int) ($c->harga_publish ?? 0)) * ((int) ($c->quantity ?? 0));
+                        });
+                    $unitPrice = $componentsTotal > 0 ? $componentsTotal : (int) ($product?->product_price ?? $unitPriceFromOrder);
+                    $subtotal = $qty * $unitPrice;
+                    $paketAwalTotal += $subtotal;
+                @endphp
+
+                <div style="margin-top: 10px;">
+                    @if (($components ?? collect())->isNotEmpty())
+                        <table class="bordered" style="font-size: 11px; margin: 0;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%; text-align: center;">No</th>
+                                    <th style="width: 55%;">Vendor</th>
+                                    <th style="width: 10%; text-align: center;">Qty</th>
+                                    <th style="width: 15%; text-align: right;">Harga</th>
+                                    <th style="width: 15%; text-align: right;">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (($components ?? collect()) as $component)
+                                    @php
+                                        $cBaseQty = (int) ($component->quantity ?? 0);
+                                        $cQty = $cBaseQty * $qty;
+                                        $cPrice = (int) ($component->harga_publish ?? 0);
+                                        $cSubtotal = $cQty * $cPrice;
+                                    @endphp
+                                    <tr>
+                                        <td style="text-align: center;">{{ $loop->iteration }}</td>
+                                        <td>{{ $component->vendor->name ?? 'N/A' }}</td>
+                                        <td style="text-align: center;">{{ $cQty }}</td>
+                                        <td style="text-align: right;">Rp {{ number_format($cPrice, 0, ',', '.') }}</td>
+                                        <td style="text-align: right;">Rp {{ number_format($cSubtotal, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                                <tr>
+                                    <td colspan="4" class="bold">Total Produk</td>
+                                    <td class="text-right bold">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    @else
+                        <table class="bordered" style="font-size: 11px; margin: 0;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 70%;">Keterangan</th>
+                                    <th style="width: 30%; text-align: right;">Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Harga Produk</td>
+                                    <td class="text-right">Rp {{ number_format($unitPrice, 0, ',', '.') }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="bold">Total Produk (Qty: {{ $qty }})</td>
+                                    <td class="text-right bold">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            @endforeach
+
+            <!-- <table class="bordered" style="font-size: 12px; margin-top: 10px;">
+                <tbody>
+                    <tr>
+                        <td class="bold">Total Paket Awal</td>
+                        <td class="text-right bold">Rp {{ number_format($paketAwalTotal, 0, ',', '.') }}</td>
+                    </tr>
+                    @if ((int) $order->total_price !== (int) $paketAwalTotal)
+                        <tr>
+                            <td>Total Paket Awal (tersimpan di Order)</td>
+                            <td class="text-right">Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table> -->
+        </div>
+    @endif
+
     <!-- Detail Penambahan per Produk dalam Order -->
     @if (($allProductPenambahanHarga ?? collect())->isNotEmpty())
         <div class="section-container" style="margin-top: 20px;">
@@ -655,7 +768,7 @@
                             <td>
                                 {{ $itemPenambahan->vendor->name ?? 'N/A' }}
                                 @if ($itemPenambahan->description)
-                                    <div class="notes-content" style="font-size: 12px; margin-left: 15px; color: #000000;">
+                                    <div class="notes-content" style="margin-left: 15px; color: #000000;">
                                         {!! strip_tags($itemPenambahan->description, '<li><strong><ul><li><br><span><div>') !!}
                                     </div>
                                 @endif
@@ -690,7 +803,7 @@
                             <td>
                                 {{ $itemPengurangan->description ?? 'N/A' }}
                                 @if ($itemPengurangan->notes)
-                                    <div class="notes-content" style="font-size: 12px; margin-left: 15px; color: #030303;">
+                                    <div class="notes-content" style="margin-left: 15px; color: #030303;">
                                         {!! strip_tags($itemPengurangan->notes, '<li><strong><ul><li><br><span><div><p>') !!}
                                     </div>
                                 @endif
