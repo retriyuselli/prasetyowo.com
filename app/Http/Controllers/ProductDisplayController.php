@@ -72,6 +72,7 @@ class ProductDisplayController extends Controller
             $pdf->setOptions([
                 'dpi' => 150,
                 'defaultFont' => 'Poppins',
+                'chroot' => base_path(),
                 'fontDir' => storage_path('fonts'),
                 'fontCache' => storage_path('fonts'),
                 'tempDir' => storage_path('app'),
@@ -108,6 +109,7 @@ class ProductDisplayController extends Controller
         $pdf->setOptions([
             'dpi' => 150,
             'defaultFont' => 'Poppins',
+            'chroot' => base_path(),
             'fontDir' => storage_path('fonts'),
             'fontCache' => storage_path('fonts'),
             'tempDir' => storage_path('app'),
@@ -117,16 +119,36 @@ class ProductDisplayController extends Controller
             'isFontSubsettingEnabled' => true,
         ]);
 
+        $dompdf = $pdf->getDomPDF();
+        $fontMetrics = $dompdf->getFontMetrics();
+
+        $fontMetrics->registerFont(
+            ['family' => 'Poppins', 'style' => 'normal', 'weight' => 'normal'],
+            'file://'.storage_path('fonts/Poppins-Regular.ttf')
+        );
+        $fontMetrics->registerFont(
+            ['family' => 'Poppins', 'style' => 'normal', 'weight' => 'bold'],
+            'file://'.storage_path('fonts/Poppins-Bold.ttf')
+        );
+        $fontMetrics->registerFont(
+            ['family' => 'Poppins', 'style' => 'italic', 'weight' => 'normal'],
+            'file://'.storage_path('fonts/Poppins-Italic.ttf')
+        );
+        $fontMetrics->registerFont(
+            ['family' => 'Poppins', 'style' => 'italic', 'weight' => 'bold'],
+            'file://'.storage_path('fonts/Poppins-BoldItalic.ttf')
+        );
+
         // Buat nama file yang dinamis
         $fileName = 'product-'.$product->slug.'-'.now()->format('Ymd').'.pdf';
 
         // Kembalikan sebagai unduhan
         // return $pdf->download($fileName);
         // return $pdf->stream($fileName);
-        return $pdf->download($fileName);
+        // return $pdf->download($fileName);
 
         // Atau jika ingin menampilkan di browser dulu (inline)
-        // return $pdf->stream($fileName);
+        return $pdf->stream($fileName);
     }
 
     public function exportDetailToExcel(Product $product)

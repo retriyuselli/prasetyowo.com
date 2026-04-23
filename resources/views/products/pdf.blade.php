@@ -10,39 +10,35 @@
             font-family: 'Poppins';
             font-style: normal;
             font-weight: 400;
-            src: url('{{ public_path('fonts/filament/filament/poppins/Poppins-Regular.ttf') }}') format('truetype');
+            src: url("file://{{ storage_path('fonts/Poppins-Regular.ttf') }}") format('truetype');
         }
 
         @font-face {
             font-family: 'Poppins';
             font-style: normal;
             font-weight: 500;
-            src: url('{{ public_path('fonts/filament/filament/poppins/Poppins-Medium.ttf') }}') format('truetype');
+            src: url("file://{{ storage_path('fonts/Poppins-Medium.ttf') }}") format('truetype');
         }
 
         @font-face {
             font-family: 'Poppins';
             font-style: normal;
             font-weight: 600;
-            src: url('{{ public_path('fonts/filament/filament/poppins/Poppins-SemiBold.ttf') }}') format('truetype');
+            src: url("file://{{ storage_path('fonts/Poppins-SemiBold.ttf') }}") format('truetype');
         }
 
         @font-face {
             font-family: 'Poppins';
             font-style: normal;
             font-weight: 700;
-            src: url('{{ public_path('fonts/filament/filament/poppins/Poppins-Bold.ttf') }}') format('truetype');
+            src: url("file://{{ storage_path('fonts/Poppins-Bold.ttf') }}") format('truetype');
         }
 
         @page {
-            /* margin: 2cm; */
             margin-top: 4cm;
-            /* Perbesar margin atas untuk header */
             margin-bottom: 1cm;
             margin-left: 1cm;
             margin-right: 1cm;
-            /* Margin atas dan bawah bisa disesuaikan lebih lanjut jika header/footer membutuhkan ruang spesifik */
-            /* Contoh: margin-top: 1.5cm; margin-bottom: 1.5cm; */
         }
 
         *,
@@ -296,6 +292,14 @@
             /* width: auto; atau biarkan browser menghitung berdasarkan left/right */
         }
 
+        .profit-positive {
+            color: green;
+        }
+
+        .profit-negative {
+            color: red;
+        }
+
         strong {
             font-weight: bold;
         }
@@ -396,6 +400,7 @@
                             <td style="text-align: right; vertical-align: top;">
                                 {{ number_format($item->price_public ?? ($item->harga_publish ?? 0), 0, ',', '.') }}
                             </td>
+                        </tr>
                         @empty
                         <tr>
                             <td colspan="4" style="text-align: center; padding: 10px;">Tidak ada item spesifik yang
@@ -578,8 +583,8 @@
                     <tr>
                         <td colspan="2" style="border: 1px solid #d1d5db; padding: 8px; font-weight: bold;">Profit /
                             (Loss)</td>
-                        <td
-                            style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-weight: bold; color: {{ $profitAndLoss < 0 ? 'red' : 'green' }};">
+                        <td class="{{ $profitAndLoss < 0 ? 'profit-negative' : 'profit-positive' }}"
+                            style="border: 1px solid #d1d5db; padding: 8px; text-align: right; font-weight: bold;">
                             {{ number_format($profitAndLoss, 0, ',', '.') }}
                         </td>
                     </tr>

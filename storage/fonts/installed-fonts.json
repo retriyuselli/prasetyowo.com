@@ -1,0 +1,10 @@
+{
+    "poppins": {
+        "normal": "\/opt\/lampp\/htdocs\/prasetyowo.com\/storage\/fonts\/poppins_normal_2dd26110f90cae1cbe9b180d05b5425f",
+        "bold": "\/opt\/lampp\/htdocs\/prasetyowo.com\/storage\/fonts\/poppins_bold_441264460104fafa9d87c55da4485205",
+        "italic": "\/opt\/lampp\/htdocs\/prasetyowo.com\/storage\/fonts\/poppins_italic_7cceb3178fb053e507d5cb43e60ab684",
+        "bold_italic": "\/opt\/lampp\/htdocs\/prasetyowo.com\/storage\/fonts\/poppins_bold_italic_4c759a870bc53b5ddc491caaa6dc0019",
+        "500": "\/opt\/lampp\/htdocs\/prasetyowo.com\/storage\/fonts\/poppins_500_754bd0eb6911f015313a1e0e671e90b2",
+        "600": "poppins_600_3be1ff81cad14e63b589b53c55f27f60"
+    }
+}
