@@ -457,43 +457,38 @@
             </div>
         @endif
 
-        {{-- Reduction Details --}}
-        <div class="package-details-box"> {{-- Gunakan box yang sudah ada stylenya --}}
-            <h3 class="section-title">Reduction Details</h3> {{-- Gunakan kelas judul --}}
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th style="width: 5%; vertical-align: top;">No.</th> {{-- Ganti Vendor Name menjadi No. --}}
-                        <th style="vertical-align: top;">Description</th>
-                        <th style="width: 15%; text-align: right; vertical-align: top;">Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($product->pengurangans ?? [] as $discount)
+        @if (($product->pengurangans ?? collect())->isNotEmpty())
+            <div class="package-details-box">
+                <h3 class="section-title">Reduction Details</h3>
+                <table class="items-table">
+                    <thead>
                         <tr>
-                            <td style="text-align: center; vertical-align: top;">{{ $loop->iteration }}</td>
-                            {{-- Tambahkan nomor urut --}}
-                            <td>
-                                <div style="font-weight: bold; margin-bottom: 2px;">
-                                    {{ $discount->description ?? 'N/A' }}</div> {{-- Nama Vendor --}}
-                                @isset($discount->notes)
-                                    <ol class="vendor-description">
-                                        {!! strip_tags($discount->notes, '<li>') !!}
-                                    </ol>
-                                @endisset
-                            </td>
-                            <td style="text-align: right; vertical-align: top;">
-                                {{ number_format($discount->amount ?? 0, 0, ',', '.') }}</td>
+                            <th style="width: 5%; vertical-align: top;">No.</th>
+                            <th style="vertical-align: top;">Description</th>
+                            <th style="width: 15%; text-align: right; vertical-align: top;">Value</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" style="text-align: center; padding: 10px;">No reductions listed for this
-                                product.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach ($product->pengurangans as $discount)
+                            <tr>
+                                <td style="text-align: center; vertical-align: top;">{{ $loop->iteration }}</td>
+                                <td>
+                                    <div style="font-weight: bold; margin-bottom: 2px;">
+                                        {{ $discount->description ?? 'N/A' }}</div>
+                                    @isset($discount->notes)
+                                        <ol class="vendor-description">
+                                            {!! strip_tags($discount->notes, '<li>') !!}
+                                        </ol>
+                                    @endisset
+                                </td>
+                                <td style="text-align: right; vertical-align: top;">
+                                    {{ number_format($discount->amount ?? 0, 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
 
 
         {{-- Price Calculation --}}
