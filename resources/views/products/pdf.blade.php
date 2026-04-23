@@ -340,7 +340,7 @@
                 <td class="header-left">
                     <strong>{{ $companyName ?? config('app.name') }}</strong><br>
                     {!! nl2br(e($company?->address ?? "Jl. Sintraman Jaya I No. 2148, 20 Ilir D II, Kec.\nKemuning, Kota Palembang, Sumatera Selatan")) !!}<br>
-                    {{ $company?->phone ?? '+6281373183794' }} | {{ $company?->email ?? 'maknawedding@gmail.com' }}
+                    Tlp : {{ $company?->phone ?? '+6281373183794' }} | Email : {{ $company?->email ?? 'maknawedding@gmail.com' }}<br>
                 </td>
                 <td class="header-right">
                     @if ($logoSrc)
