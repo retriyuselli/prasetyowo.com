@@ -97,7 +97,7 @@ class InvoiceOrderController extends Controller
 
         $company = null;
         if (\Illuminate\Support\Facades\Schema::hasTable('companies')) {
-            $company = \App\Models\Company::with('paymentMethod')->first();
+            $company = \App\Models\Company::with(['paymentMethod', 'paymentMethodSecondary'])->first();
         }
 
         $paymentDetails = 'Please contact us for payment details.';
@@ -106,6 +106,14 @@ class InvoiceOrderController extends Controller
                 $company->paymentMethod->no_rekening.' '.
                 $company->paymentMethod->bank_name.' '.
                 '('.$company->paymentMethod->name.')';
+        }
+
+        $paymentDetailsSecondary = 'Please contact us for payment details.';
+        if ($company && $company->paymentMethodSecondary) {
+            $paymentDetailsSecondary =
+                $company->paymentMethodSecondary->no_rekening.' '.
+                $company->paymentMethodSecondary->bank_name.' '.
+                '('.$company->paymentMethodSecondary->name.')';
         }
 
         $logoCacheKey = 'invoice:logo:'.
@@ -165,6 +173,7 @@ class InvoiceOrderController extends Controller
             'order',
             'company',
             'paymentDetails',
+            'paymentDetailsSecondary',
             'logoBase64',
             'totalAdditionAmount',
             'allProductPenambahanHarga',

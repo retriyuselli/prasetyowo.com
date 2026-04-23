@@ -852,7 +852,7 @@
             <td style="width: 65%; vertical-align: top;">
                 <div class="bold">Terms & Conditions</div>
                 <ul>
-                    <li>Silakan lakukan pembayaran melalui transfer bank ke rekening yang tertera. <br>{{ $paymentDetails ?? 'Please contact us for payment details.' }}</li>
+                    <li>Silakan lakukan pembayaran melalui transfer bank ke rekening yang tertera. <br>{{ $paymentDetails ?? 'Please contact us for payment details.' }} atau {{ $paymentDetailsSecondary ?? 'Please contact us for payment details.' }}</li>
                     <li>Pembayaran diharapkan lunas dalam waktu {{ config('invoice.payment_days', 7) }} hari dari tanggal invoice.</li>
                     <li>Mohon lakukan pembayaran sesuai nominal yang tertera.</li>
                     <li>Setelah melakukan pembayaran, silakan kirim bukti pembayaran ke email kami.</li>
