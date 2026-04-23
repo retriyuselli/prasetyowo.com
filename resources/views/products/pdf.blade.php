@@ -312,19 +312,26 @@
     {{-- Header Section --}}
     <div class="header">
         @php
-            $logoPath = public_path('images/logomki.png');
-            $logoSrc = '';
-            if (file_exists($logoPath)) {
-                try {
-                    $logoData = base64_encode(file_get_contents($logoPath));
-                    $mimeType = mime_content_type($logoPath);
-                    if ($mimeType) {
-                        // Pastikan mime type valid
-                        $logoSrc = 'data:' . $mimeType . ';base64,' . $logoData;
+            $logoSrc = $logoSrc ?? '';
+
+            if (! $logoSrc) {
+                $logoPath = null;
+
+                if ($company?->logo_url && \Illuminate\Support\Facades\Storage::disk('public')->exists($company->logo_url)) {
+                    $logoPath = \Illuminate\Support\Facades\Storage::disk('public')->path($company->logo_url);
+                } else {
+                    $logoPath = public_path('images/logomki.png');
+                }
+
+                if (is_string($logoPath) && file_exists($logoPath)) {
+                    try {
+                        $mimeType = mime_content_type($logoPath);
+                        if ($mimeType) {
+                            $logoSrc = 'data:'.$mimeType.';base64,'.base64_encode(file_get_contents($logoPath));
+                        }
+                    } catch (\Throwable $e) {
+                        $logoSrc = '';
                     }
-                } catch (\Exception $e) {
-                    // Handle error jika file tidak bisa dibaca atau base64 gagal
-                    $logoSrc = ''; // Kosongkan jika error
                 }
             }
         @endphp
