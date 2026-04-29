@@ -37,7 +37,6 @@ class ProductsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->poll('5s')
             ->defaultPaginationPageOption(25)
             ->columns([
                 TextColumn::make('name')

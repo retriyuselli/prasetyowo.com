@@ -313,6 +313,8 @@ Route::middleware($authNoStore)->group(function () {
     Route::get('/profile/overview', [ProfileController::class, 'overview'])->name('profile.overview');
     Route::get('/profile/compensation', [ProfileController::class, 'compensation'])->name('profile.compensation');
     Route::get('/profile/schedule', [ProfileController::class, 'schedule'])->name('profile.schedule');
+    Route::get('/profile/crew', [ProfileController::class, 'crew'])->name('profile.crew');
+    Route::get('/profile/crew-data', [ProfileController::class, 'crewData'])->name('profile.crew-data');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');

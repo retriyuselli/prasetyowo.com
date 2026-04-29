@@ -67,12 +67,47 @@ class Order extends Model
 
     protected static function booted(): void
     {
+        static::created(function (Order $order) {
+            if (! Schema::hasTable('order_events')) {
+                return;
+            }
+
+            if ($order->events()->exists()) {
+                return;
+            }
+
+            $order->loadMissing('prospect');
+            $prospect = $order->prospect;
+
+            $order->events()->createMany([
+                [
+                    'type' => 'lamaran',
+                    'event_date' => $prospect?->date_lamaran,
+                    'start_time' => $prospect?->time_lamaran,
+                    'location' => $prospect?->venue,
+                ],
+                [
+                    'type' => 'akad',
+                    'event_date' => $prospect?->date_akad,
+                    'start_time' => $prospect?->time_akad,
+                    'location' => $prospect?->venue,
+                ],
+                [
+                    'type' => 'resepsi',
+                    'event_date' => $prospect?->date_resepsi,
+                    'start_time' => $prospect?->time_resepsi,
+                    'location' => $prospect?->venue,
+                ],
+            ]);
+        });
+
         static::deleting(function (Order $order) {
             // Saat sebuah Order dihapus, hapus juga semua relasi terkait.
             // Ini memastikan tidak ada data 'yatim' (orphaned records) di database.
             $order->expenses()->each(fn (Expense $expense) => $expense->delete());
             $order->dataPembayaran()->each(fn (DataPembayaran $pembayaran) => $pembayaran->delete());
             $order->items()->each(fn (OrderProduct $item) => $item->delete());
+            $order->events()->each(fn (OrderEvent $event) => $event->delete());
             if (Schema::hasTable('order_penambahans')) {
                 $order->orderPenambahans()->each(fn (OrderPenambahan $penambahan) => $penambahan->delete());
             }
@@ -125,6 +160,11 @@ class Order extends Model
     public function orderPengurangans()
     {
         return $this->hasMany(OrderPengurangan::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(OrderEvent::class);
     }
 
     public function items(): HasMany

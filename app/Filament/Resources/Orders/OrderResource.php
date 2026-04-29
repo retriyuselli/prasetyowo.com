@@ -144,14 +144,7 @@ class OrderResource extends Resource
                     ->label('Product')
                     ->options(Product::query()->where('stock', '>', 1)->pluck('name', 'id'))
                     ->required()
-                    ->reactive()
-                    ->live() // Anda bisa menambahkan live() jika ingin update instan saat produk dipilih
-                    ->afterStateHydrated(function (Set $set, Get $get, $state) {
-                        $product = Product::find($state);
-                        $set('stock', $product?->stock ?? 0);
-                        $set('unit_price', $product?->product_price ?? 0);
-                    })
-
+                    ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                         $product = Product::find($state);
                         $set('stock', $product?->stock ?? 0);
@@ -175,8 +168,7 @@ class OrderResource extends Resource
                     ])
                     ->minValue(1)
                     ->required()
-                    ->reactive()
-                    // ->live() // Anda bisa menambahkan live() jika ingin update instan saat kuantitas diubah
+                    ->live(onBlur: true)
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                         $stock = $get('stock');
                         if ($state > $stock) {
@@ -191,6 +183,10 @@ class OrderResource extends Resource
                     ->dehydrated()
                     ->numeric()
                     ->required()
+                    ->afterStateHydrated(function ($component, Get $get) {
+                        $product = Product::find($get('product_id'));
+                        $component->state($product?->stock ?? 0);
+                    })
                     ->columnSpan([
                         'md' => 1,
                     ]),
@@ -210,7 +206,6 @@ class OrderResource extends Resource
             ->collapsible()
             ->reorderable()
             ->cloneable()
-            ->reactive()
             ->live()
             ->itemLabel(fn (array $state): ?string => Product::find($state['product_id'])?->name)
             ->extraItemActions([
@@ -233,8 +228,6 @@ class OrderResource extends Resource
             ->columns([
                 'md' => 10,
             ])
-            ->reactive() // Membuat repeater reaktif
-            // ->live() // Anda bisa menambahkan live() jika ingin update instan saat item ditambah/dihapus
             ->afterStateUpdated(function (Get $get, Set $set) {
                 // Logika ini akan dijalankan ketika item di repeater berubah (ditambah, dihapus, atau field reaktif di dalamnya berubah)
                 // $get relatif terhadap parent dari repeater (dalam kasus ini, Wizard\Step 'Payment Details')
@@ -290,8 +283,8 @@ class OrderResource extends Resource
             $productId = $item['product_id'];
             $quantity = $item['quantity'] ?? 0;
 
-            // Check if product exists in our fetched collection and has a price
-            if (isset($productsFromDb[$productId]) && isset($productsFromDb[$productId]->price)) {
+            // Check if product exists in our fetched collection
+            if (isset($productsFromDb[$productId])) {
                 $productPrice = $productsFromDb[$productId]->product_price ?? 0;
                 $productPengurangan = $productsFromDb[$productId]->pengurangan ?? 0;
                 $productPenambahanPublish = $productsFromDb[$productId]->penambahan_publish ?? 0;

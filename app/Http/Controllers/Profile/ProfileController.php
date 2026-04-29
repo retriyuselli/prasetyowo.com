@@ -194,6 +194,74 @@ class ProfileController extends Controller
         return view('profile.schedule', $this->profileViewData());
     }
 
+    public function crew()
+    {
+        $user = Auth::user();
+        $employee = $user?->activeEmployee;
+        $isSuperAdmin = $user?->hasRole('super_admin') ?? false;
+
+        $crewEvents = collect();
+
+        if ($isSuperAdmin) {
+            // Super admin melihat semua event dari semua karyawan
+            $allEvents = \App\Models\OrderEvent::with(['order.prospect', 'employees.dataPribadi'])
+                ->orderBy('event_date', 'asc')
+                ->get()
+                ->groupBy(fn ($e) => $e->event_date?->isPast() ? 'past' : 'upcoming');
+
+            $upcomingEvents = $allEvents->get('upcoming', collect())->sortBy('event_date');
+            $pastEvents     = $allEvents->get('past', collect())->sortByDesc('event_date');
+        } elseif ($employee) {
+            $crewEvents = $employee->orderEvents()
+                ->with(['order.prospect', 'employees.dataPribadi'])
+                ->orderBy('event_date', 'asc')
+                ->get()
+                ->groupBy(fn ($e) => $e->event_date?->isPast() ? 'past' : 'upcoming');
+
+            $upcomingEvents = $crewEvents->get('upcoming', collect())->sortBy('event_date');
+            $pastEvents     = $crewEvents->get('past', collect())->sortByDesc('event_date');
+        } else {
+            $upcomingEvents = collect();
+            $pastEvents     = collect();
+        }
+
+        return view('profile.crew', array_merge($this->profileViewData(), compact('upcomingEvents', 'pastEvents', 'employee', 'isSuperAdmin')));
+    }
+
+    public function crewData()
+    {
+        abort_unless(Auth::user()?->hasRole('super_admin'), 403);
+
+        $search   = request('search', '');
+        $position = request('position', '');
+
+        $query = \App\Models\DataPribadi::with('employee')
+            ->orderBy('nama_lengkap', 'asc');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('pekerjaan', 'like', "%{$search}%");
+            });
+        }
+
+        if ($position) {
+            $query->where('pekerjaan', $position);
+        }
+
+        $crewList  = $query->paginate(20)->withQueryString();
+        $positions = \App\Models\DataPribadi::whereNotNull('pekerjaan')
+            ->distinct()
+            ->orderBy('pekerjaan')
+            ->pluck('pekerjaan');
+
+        return view('profile.crew-data', array_merge(
+            $this->profileViewData(),
+            compact('crewList', 'positions', 'search', 'position')
+        ));
+    }
+
     /**
      * Show the form for editing the user's profile.
      */

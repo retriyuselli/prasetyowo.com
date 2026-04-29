@@ -34,11 +34,26 @@ use Filament\Schemas\Schema;
 use Filament\Support\RawJs;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class OrderForm
 {
+    private static function canManageEventCrew(): bool
+    {
+        if (! Auth::id()) {
+            return false;
+        }
+
+        return DB::table('model_has_roles')
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.model_type', '=', \App\Models\User::class)
+            ->where('model_has_roles.model_id', '=', Auth::id())
+            ->whereIn('roles.name', ['super_admin', 'admin'])
+            ->exists();
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
@@ -77,6 +92,7 @@ class OrderForm
                             ->required()
                             ->unique(Order::class, 'prospect_id', ignoreRecord: true)
                             ->label('Prospek')
+                            ->live()
                             ->debounce(500)
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state) {
@@ -98,7 +114,12 @@ class OrderForm
                             ->required()
                             ->readOnly()
                             ->label('Nama Acara')
-                            ->debounce(500),
+                            ->debounce(500)
+                            ->afterStateHydrated(function ($component, $state, ?Order $record) {
+                                if ($record && empty($state)) {
+                                    $component->state($record->prospect?->name_event);
+                                }
+                            }),
                         Select::make('user_id')
                             ->relationship('user', 'name')
                             ->required()
@@ -270,27 +291,7 @@ class OrderForm
                             ->label('Promo')
                             ->mask(RawJs::make('$money($input)'))
                             ->stripCharacters(',')
-                            ->dehydrateStateUsing(fn ($state) => (int) str_replace([',', '.'], '', (string) $state))
-                            ->reactive()
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                $tpRaw = $get('total_price');
-                                $pgRaw = $get('pengurangan');
-                                $pmRaw = $get('promo');
-                                $pnRaw = $get('penambahan');
-                                $totalPrice = is_numeric($tpRaw) ? (int) $tpRaw : (int) preg_replace('/[^\d]/', '', (string) $tpRaw);
-                                $pengurangan = is_numeric($pgRaw) ? (int) $pgRaw : (int) preg_replace('/[^\d]/', '', (string) $pgRaw);
-                                $promo = is_numeric($pmRaw) ? (int) $pmRaw : (int) preg_replace('/[^\d]/', '', (string) $pmRaw);
-                                $penambahan = is_numeric($pnRaw) ? (int) $pnRaw : (int) preg_replace('/[^\d]/', '', (string) $pnRaw);
-                                $grandTotal = Order::computeGrandTotalFromValues(
-                                    $totalPrice,
-                                    $penambahan,
-                                    $promo,
-                                    $pengurangan
-                                );
-                                $set('grand_total', $grandTotal);
-                                OrderResource::updateDependentFinancialFields($get, $set);
-                            }),
+                            ->dehydrateStateUsing(fn ($state) => (int) str_replace([',', '.'], '', (string) $state)),
                         TextInput::make('penambahan')
                             ->default(0)
                             ->prefix('Rp. ')
@@ -299,27 +300,7 @@ class OrderForm
                             ->helperText('Auto-calculated from selected products penambahan publish price')
                             ->mask(RawJs::make('$money($input)'))
                             ->stripCharacters(',')
-                            ->dehydrateStateUsing(fn ($state) => (int) str_replace([',', '.'], '', (string) $state))
-                            ->reactive()
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                $tpRaw = $get('total_price');
-                                $pgRaw = $get('pengurangan');
-                                $pmRaw = $get('promo');
-                                $pnRaw = $get('penambahan');
-                                $totalPrice = is_numeric($tpRaw) ? (int) $tpRaw : (int) preg_replace('/[^\d]/', '', (string) $tpRaw);
-                                $pengurangan = is_numeric($pgRaw) ? (int) $pgRaw : (int) preg_replace('/[^\d]/', '', (string) $pgRaw);
-                                $promo = is_numeric($pmRaw) ? (int) $pmRaw : (int) preg_replace('/[^\d]/', '', (string) $pmRaw);
-                                $penambahan = is_numeric($pnRaw) ? (int) $pnRaw : (int) preg_replace('/[^\d]/', '', (string) $pnRaw);
-                                $grandTotal = Order::computeGrandTotalFromValues(
-                                    $totalPrice,
-                                    $penambahan,
-                                    $promo,
-                                    $pengurangan
-                                );
-                                $set('grand_total', $grandTotal);
-                                OrderResource::updateDependentFinancialFields($get, $set);
-                            }),
+                            ->dehydrateStateUsing(fn ($state) => (int) str_replace([',', '.'], '', (string) $state)),
                         TextInput::make('pengurangan')
                             ->default(0)
                             ->prefix('Rp. ')
@@ -338,7 +319,6 @@ class OrderForm
                         Section::make()
                             ->schema([
                                 TextInput::make('bayar')
-                                    ->reactive()
                                     ->label('Uang dibayar')
                                     ->readOnly()
                                     ->default(0)
@@ -354,7 +334,6 @@ class OrderForm
                                         }
                                     }),
                                 TextInput::make('grand_total')
-                                    ->reactive()
                                     ->label('Grand Total')
                                     ->readOnly()
                                     ->default(0)
@@ -370,7 +349,6 @@ class OrderForm
                                         }
                                     }),
                                 TextInput::make('tot_pengeluaran')
-                                    ->reactive()
                                     ->label('Pengeluaran')
                                     ->readOnly()
                                     ->default(0)
@@ -461,8 +439,6 @@ class OrderForm
                             ->label('Lunas / Belum')
                             ->default(false)
                             ->disabled()
-                            ->reactive()
-                            ->live()
                             ->dehydrated()
                             ->onIcon('heroicon-m-bolt')
                             ->offIcon('heroicon-m-user')
@@ -491,6 +467,65 @@ class OrderForm
                                     ->label('Kelola Pengeluaran')
                                     ->state('Gunakan tab Pengeluaran di bawah form untuk tambah/edit pengeluaran.'),
                             ])->columnSpanFull(),
+                    ]),
+                Step::make('Crew & Event')
+                    ->icon('heroicon-o-user-group')
+                    ->description('Penugasan crew per event')
+                    ->visible(fn (): bool => self::canManageEventCrew())
+                    ->schema([
+                        Section::make('Event & Crew')
+                            ->schema([
+                                Repeater::make('events')
+                                    ->relationship('events')
+                                    ->columns(2)
+                                    ->defaultItems(0)
+                                    ->schema([
+                                        Select::make('type')
+                                            ->options([
+                                                'lamaran' => 'Lamaran',
+                                                'akad' => 'Akad',
+                                                'resepsi' => 'Resepsi',
+                                                'lainnya' => 'Lainnya',
+                                            ])
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Set $set) {
+                                                $labels = [
+                                                    'lamaran' => 'Lamaran',
+                                                    'akad' => 'Akad',
+                                                    'resepsi' => 'Resepsi',
+                                                ];
+                                                if ($state && isset($labels[$state])) {
+                                                    $set('name', $labels[$state]);
+                                                } elseif ($state === 'lainnya') {
+                                                    $set('name', null);
+                                                }
+                                            })
+                                            ->columnSpan(1),
+                                        TextInput::make('name')
+                                            ->label('Nama Event')
+                                            ->maxLength(255)
+                                            ->columnSpan(1)
+                                            ->readOnly(fn (Get $get): bool => in_array($get('type'), ['lamaran', 'akad', 'resepsi']))
+                                            ->helperText(fn (Get $get): ?string => $get('type') === 'lainnya' ? 'Isi nama event secara manual.' : 'Terisi otomatis dari tipe event.')
+                                            ->required(fn (Get $get): bool => $get('type') === 'lainnya'),
+                                        DatePicker::make('event_date')
+                                            ->label('Tanggal')
+                                            ->native(false)
+                                            ->columnSpan(1),
+                                        TextInput::make('location')
+                                            ->label('Lokasi')
+                                            ->maxLength(255)
+                                            ->columnSpan(1),
+                                        Select::make('employees')
+                                            ->label('Crew')
+                                            ->relationship('employees', 'name')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->columnSpanFull(),
+                                    ]),
+                            ])
+                            ->columnSpanFull(),
                     ]),
                 Step::make('Riwayat Modifikasi')
                     ->icon('heroicon-o-clock')

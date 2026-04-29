@@ -1,6 +1,8 @@
 @php
     $canManageLeaveRequests = $profileUser?->hasRole(['super_admin', 'admin', 'finance']) ?? false;
     $isSuperAdmin = $profileUser?->hasRole('super_admin') ?? false;
+    $authUser = Auth::user();
+    $showCrewMenu = ($authUser?->hasRole('super_admin') ?? false) || ($profileUser?->activeEmployee !== null);
 @endphp
 
 <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden lg:sticky lg:top-24">
@@ -30,6 +32,8 @@
             $overviewActive = request()->routeIs('profile') || request()->routeIs('profile.show') || request()->routeIs('profile.overview');
             $compensationActive = request()->routeIs('profile.compensation');
             $scheduleActive = request()->routeIs('profile.schedule');
+            $crewActive = request()->routeIs('profile.crew');
+            $crewDataActive = request()->routeIs('profile.crew-data');
         @endphp
 
         <a href="{{ route('profile') }}"
@@ -55,6 +59,26 @@
             </svg>
             <span>Jadwal & Riwayat</span>
         </a>
+
+        @if($showCrewMenu)
+        <a href="{{ route('profile.crew') }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition {{ $crewActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+            <svg class="w-4 h-4 {{ $crewActive ? 'text-blue-600' : 'text-green-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 11-8 0 4 4 0 018 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Penugasan Crew</span>
+        </a>
+        @endif
+
+        @if($isSuperAdmin)
+        <a href="{{ route('profile.crew-data') }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition {{ $crewDataActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50' }}">
+            <svg class="w-4 h-4 {{ $crewDataActive ? 'text-blue-600' : 'text-purple-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m-7 4h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>Data Crew</span>
+        </a>
+        @endif
 
         <div class="my-3 border-t border-gray-200"></div>
 
